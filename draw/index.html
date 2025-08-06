@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>이미지 위에 그림 그리기</title>
+  <style>
+    html,body{margin:0;height:100%}
+    canvas{
+      touch-action:none;
+      display:block;
+      width:100%;
+      height:100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      box-sizing: border-box;
+    }
+    .background-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    /* === 툴바 스타일 === */
+    .toolbar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      background: rgba(0,0,0,0.8);
+      padding: 12px 16px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: sans-serif;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* 데스크탑 최적화 */
+    @media (min-width: 769px) {
+      .toolbar {
+        bottom: 30px;
+        padding: 15px 20px;
+        gap: 15px;
+      }
+      .toolbar button {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+      .toolbar input[type="color"] {
+        width: 50px;
+        height: 50px;
+      }
+      .toolbar input[type="range"] {
+        width: 100px;
+        height: 50px;
+      }
+    }
+    .toolbar button {
+      cursor: pointer;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .toolbar button:hover,
+    .toolbar button:active {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+    .toolbar input[type="color"] {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      background: none;
+    }
+    .toolbar input[type="range"] {
+      width: 80px;
+      height: 44px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 22px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .toolbar input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .toolbar input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .toolbar button.active {
+      background: rgba(255,255,255,0.4);
+      transform: scale(1.1);
+    }
+    
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+      .toolbar {
+        bottom: 30px;
+        padding: 10px 14px;
+        gap: 10px;
+      }
+      .toolbar button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      .toolbar input[type="color"] {
+        width: 40px;
+        height: 40px;
+      }
+      .toolbar input[type="range"] {
+        width: 70px;
+        height: 40px;
+      }
+    }
+    
+    /* 매우 작은 화면 */
+    @media (max-width: 480px) {
+      .toolbar {
+        bottom: 20px;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .toolbar button {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+      .toolbar input[type="color"] {
+        width: 36px;
+        height: 36px;
+      }
+      .toolbar input[type="range"] {
+        width: 60px;
+        height: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- === 그리기 툴바 === -->
+  <div class="toolbar">
+    <button id="brushBtn" title="붓" class="active">🖌</button>
+    <button id="eraserBtn" title="지우개">🧽</button>
+    <input type="color" id="colorPicker" value="#000000" title="색 선택" />
+    <input type="range" id="brushSize" min="2" max="30" value="8" title="붓 크기" />
+    <button id="undoBtn" title="뒤로 가기">↶</button>
+    <button id="redoBtn" title="앞으로 가기">↷</button>
+    <button id="clearBtn" title="모두 지우기">🗑</button>
+    <button id="saveBtn" title="저장">💾</button>
+  </div>
+  <img src="KakaoTalk_20250723_142159506.jpg" alt="배경 이미지" class="background-image">
+  <canvas id="c"></canvas>
+
+  <!-- ① CDN(EcmaScript Module)에서 라이브러리 로드  -->
+  <script type="module">
+    import { getStroke } from 'https://cdn.jsdelivr.net/npm/perfect-freehand@1.2.2/+esm';
+
+    /* ===== 캔버스 및 상태 변수 준비 ===== */
+    const canvas  = document.getElementById('c');
+    const ctx     = canvas.getContext('2d');
+    const brushBtn = document.getElementById('brushBtn');
+    const eraserBtn = document.getElementById('eraserBtn');
+    const colorPicker = document.getElementById('colorPicker');
+    const brushSizeInput = document.getElementById('brushSize');
+    const undoBtn  = document.getElementById('undoBtn');
+    const redoBtn  = document.getElementById('redoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const saveBtn  = document.getElementById('saveBtn');
+
+    resize();
+    window.addEventListener('resize', () => {
+      resize();
+      render();
+    });
+
+    let drawing = false;
+    let points  = [];
+    const strokes = [];          // 완료된 스트로크들
+    const undoneStrokes = [];    // redo를 위한 스택
+
+    let currentColor = colorPicker.value;
+    let currentSize  = Number(brushSizeInput.value);
+    let isEraser = false;
+
+    /* ===== UI 이벤트 ===== */
+    brushBtn.addEventListener('click', () => {
+      isEraser = false;
+      brushBtn.classList.add('active');
+      eraserBtn.classList.remove('active');
+    });
+
+    eraserBtn.addEventListener('click', () => {
+      isEraser = true;
+      eraserBtn.classList.add('active');
+      brushBtn.classList.remove('active');
+    });
+
+    colorPicker.addEventListener('input', (e) => {
+      currentColor = e.target.value;
+    });
+
+    brushSizeInput.addEventListener('input', (e) => {
+      currentSize = Number(e.target.value);
+    });
+
+    undoBtn.addEventListener('click', () => {
+      if (strokes.length) {
+        undoneStrokes.push(strokes.pop());
+        render();
+      }
+    });
+
+    redoBtn.addEventListener('click', () => {
+      if (undoneStrokes.length) {
+        strokes.push(undoneStrokes.pop());
+        render();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      strokes.length = 0;
+      undoneStrokes.length = 0;
+      render();
+    });
+
+    /* ===== 저장 기능 ===== */
+    saveBtn.addEventListener('click', () => {
+      // 오프스크린 캔버스 생성
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width  = canvas.width;
+      exportCanvas.height = canvas.height;
+      const ectx = exportCanvas.getContext('2d');
+
+      // 배경 이미지 그리기 (동일 비율로 스케일)
+      const backgroundImg = document.querySelector('.background-image');
+      ectx.drawImage(backgroundImg, 0, 0, exportCanvas.width, exportCanvas.height);
+      // 그려진 스트로크 캔버스 합성
+      ectx.drawImage(canvas, 0, 0);
+
+      // 다운로드 링크 생성
+      const link = document.createElement('a');
+      link.href = exportCanvas.toDataURL('image/png');
+      link.download = 'drawing.png';
+      link.click();
+    });
+
+    /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
+    canvas.addEventListener('pointerdown', (e) => {
+      drawing = true;
+      points = [[e.offsetX, e.offsetY, e.pressure]];
+      // 새 스트로크를 시작하면 redo 스택 초기화
+      undoneStrokes.length = 0;
+      render();
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      points.push([e.offsetX, e.offsetY, e.pressure]);
+      render();
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      if (!drawing) return;
+      drawing = false;
+      // 현재 포인트 복사하여 저장
+      strokes.push({ 
+        points: [...points], 
+        color: isEraser ? 'eraser' : currentColor, 
+        size: currentSize,
+        isEraser: isEraser 
+      });
+      points = [];
+      render();
+    });
+
+    /* ===== 렌더링 함수 ===== */
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 저장된 스트로크 그리기
+      strokes.forEach(s => drawStroke(s.points, s.color, s.size, s.isEraser));
+
+      // 현재 그리고 있는 스트로크 미리보기
+      if (drawing && points.length) {
+        drawStroke(points, currentColor, currentSize, isEraser);
+      }
+    }
+
+    function drawStroke(pts, color, size, isEraser = false) {
+      const stroke = getStroke(pts, { size, thinning: 0.6 });
+      if (!stroke.length) return;
+
+      if (isEraser) {
+        // 지우개 모드: 배경색으로 그리기 (투명하게)
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+      } else {
+        // 붓 모드: 일반 그리기
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = color;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(stroke[0][0], stroke[0][1]);
+      for (let i = 1; i < stroke.length; i++) {
+        const [x, y] = stroke[i];
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      
+      // 복합 모드 초기화
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function resize() {
+      // 데스크탑에서는 툴바 공간을 고려하여 캔버스 크기 조정
+      const isDesktop = window.innerWidth >= 769;
+      const toolbarHeight = isDesktop ? 80 : 70; // 툴바 + 여백
+      
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - toolbarHeight;
+      
+      // 캔버스 위치를 위로 조정하여 툴바 공간 확보
+      canvas.style.top = '0px';
+      canvas.style.height = `${canvas.height}px`;
+    }
+  </script>
+</body>
+</html>

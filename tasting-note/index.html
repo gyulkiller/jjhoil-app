@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>참기름 테이스팅 노트</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-text {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .highlight-yellow {
+            background-color: #FFEB3B;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .highlight-orange {
+            background-color: #FF9800;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .highlight-red {
+            background-color: #F44336;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 600px;
+            height: 500px;
+            margin: 0 auto;
+        }
+
+        .center-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .center-image {
+            background-image: url('KakaoTalk_20250723_084355536.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-text">
+        <span class="highlight-yellow">A salad with 138 sesame oil</span><br>
+        <span class="highlight-orange">Bibimbap made with 167 sesame oil</span><br>
+        <span class="highlight-red">A steak marinade using 178 sesame oil</span><br>
+        will be yummy 😋
+    </div>
+
+    <div class="chart-container">
+        <canvas id="radarChart"></canvas>
+        <div class="center-image"></div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        
+        const radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FLAVOR'],
+                datasets: [
+                    {
+                        label: 'A salad with 138 sesame oil',
+                        data: [85, 75, 55, 35, 75],
+                        backgroundColor: 'rgba(255, 235, 59, 0.3)',
+                        borderColor: 'rgba(255, 235, 59, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 235, 59, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 235, 59, 1)'
+                    },
+                    {
+                        label: 'Bibimbap made with 167 sesame oil',
+                        data: [65, 55, 75, 85, 75],
+                        backgroundColor: 'rgba(255, 152, 0, 0.3)',
+                        borderColor: 'rgba(255, 152, 0, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 152, 0, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 152, 0, 1)'
+                    },
+                    {
+                        label: 'A steak marinade using 178 sesame oil',
+                        data: [55, 35, 75, 65, 85],
+                        backgroundColor: 'rgba(244, 67, 54, 0.3)',
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(244, 67, 54, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(244, 67, 54, 1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        min: 0,
+                        ticks: {
+                            stepSize: 20,
+                            display: false
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#000'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.r;
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
