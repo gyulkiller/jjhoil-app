@@ -29,7 +29,7 @@
       height: var(--app-vh);
       object-fit: contain;
       object-position: center center;
-      z-index: 1;
+      z-index: 2;
     }
     /* === 툴바 스타일 === */
     .toolbar {
@@ -959,27 +959,28 @@
     }
 
     function resize() {
-      // 1) 화면 비율 변화에 의한 왜곡을 원천 차단: 정사각형 스테이지 유지
+      // 1) 전체 화면 캔버스 버퍼 크기 갱신 (스타일 크기는 CSS로 고정)
       const vp = getViewportSize();
-      const stage = Math.floor(Math.min(vp.width, vp.height));
+      canvas.width = vp.width;
+      canvas.height = vp.height;
 
-      // 캔버스 버퍼 및 스타일 모두 정사각형으로 설정하고 중앙 정렬
-      canvas.width = stage;
-      canvas.height = stage;
-      const left = Math.round((vp.width - stage) / 2);
-      const top  = Math.round((vp.height - stage) / 2);
-      canvas.style.left = `${left}px`;
-      canvas.style.top = `${top}px`;
-      canvas.style.width = `${stage}px`;
-      canvas.style.height = `${stage}px`;
-
-      // 2) 배경 SVG도 동일 스테이지에 맞춤 (object-fit으로 원본 비율 유지)
+      // 2) 배경 SVG는 항상 툴바 위에 위치하도록, 하단에 툴바 높이만큼 공간을 비움
+      const isDesktop = vp.width >= 769;
+      const marginX = isDesktop ? 140 : 40;
+      const marginTop = isDesktop ? 80 : 24;
+      const toolbarRect = toolbarEl?.getBoundingClientRect?.();
+      const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
       const bg = document.getElementById('bgImage');
       if (bg) {
-        bg.style.left = `${left}px`;
-        bg.style.top = `${top}px`;
-        bg.style.width = `${stage}px`;
-        bg.style.height = `${stage}px`;
+        const boxW = Math.max(200, vp.width - marginX * 2);
+        // 툴바보다 훨씬 넉넉한 하단 여백을 확보
+        const extraBottom = isDesktop ? 140 : 100; // 추가 여백(px)
+        const bottomGap = toolbarHeight + extraBottom;
+        const boxH = Math.max(200, vp.height - marginTop - bottomGap);
+        bg.style.left = `${marginX}px`;
+        bg.style.top = `${marginTop}px`;
+        bg.style.width = `${boxW}px`;
+        bg.style.height = `${boxH}px`;
       }
     }
 
