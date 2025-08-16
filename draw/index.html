@@ -803,6 +803,9 @@
     });
 
     clearBtn.addEventListener('click', () => {
+      // 지우기 확인
+      const ok = window.confirm('그려진 내용을 모두 지우시겠습니까?');
+      if (!ok) return;
       strokes.length = 0;
       undoneStrokes.length = 0;
       render();
