@@ -6,23 +6,27 @@
   <title>이미지 위에 그림 그리기</title>
   <style>
     html,body{margin:0;height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+    html{height:-webkit-fill-available}
+    body{min-height:100vh;min-height:-webkit-fill-available;overflow:hidden}
+    :root{--app-vh:100vh}
+    @supports(height:100dvh){:root{--app-vh:100dvh}}
     canvas{
       touch-action: none;
       display:block;
-      width:100%;
-      height:100%;
-      position: absolute;
+      width:100vw;
+      height:var(--app-vh);
+      position: fixed;
       top: 0;
       left: 0;
       z-index: 2;
       box-sizing: border-box;
     }
     .background-image {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: var(--app-vh);
       object-fit: contain;
       object-position: center center;
       z-index: 1;
@@ -403,6 +407,13 @@
       return { width, height };
     }
 
+    function setAppVhVar() {
+      const vv = window.visualViewport;
+      const vh = Math.floor(vv ? vv.height : window.innerHeight);
+      document.documentElement.style.setProperty('--app-vh', vh + 'px');
+    }
+    setAppVhVar();
+
     let resizeScheduled = false;
     function scheduleResize() {
       if (resizeScheduled) return;
@@ -419,8 +430,8 @@
     window.addEventListener('orientationchange', () => { setTimeout(scheduleResize, 60); });
     window.addEventListener('pageshow', (e) => { if (e.persisted) scheduleResize(); });
     if (window.visualViewport) {
-      visualViewport.addEventListener('resize', scheduleResize);
-      visualViewport.addEventListener('scroll', scheduleResize);
+      visualViewport.addEventListener('resize', () => { setAppVhVar(); scheduleResize(); });
+      visualViewport.addEventListener('scroll', () => { setAppVhVar(); scheduleResize(); });
     }
 
     let drawing = false;
@@ -950,12 +961,9 @@
     function resize() {
       // 1) 캔버스는 전체 화면 사용 (visualViewport 우선)
       const vp = getViewportSize();
+      // 버퍼 크기는 화면 픽셀 크기로, 스타일 크기는 CSS에서 고정
       canvas.width = vp.width;
       canvas.height = vp.height;
-      canvas.style.left = '0px';
-      canvas.style.top = '0px';
-      canvas.style.width = `${canvas.width}px`;
-      canvas.style.height = `${canvas.height}px`;
 
       // 2) 배경 이미지는 여백이 있도록 중앙에 contain
       const isDesktop = vp.width >= 769;
