@@ -395,12 +395,33 @@
     const saveBtn  = document.getElementById('saveBtn');
 
     resize();
+    // iOS Safari에서 주소창/툴바 변화로 생기는 뷰포트 왜곡을 줄이기 위한 보정
+    function getViewportSize() {
+      const vv = window.visualViewport;
+      const width = Math.floor((vv && vv.width) ? vv.width : window.innerWidth);
+      const height = Math.floor((vv && vv.height) ? vv.height : window.innerHeight);
+      return { width, height };
+    }
+
+    let resizeScheduled = false;
+    function scheduleResize() {
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      requestAnimationFrame(() => {
+        resize();
+        // 주소창 애니메이션 종료 후 한 번 더 보정
+        setTimeout(() => { resize(); resizeScheduled = false; }, 120);
+      });
+    }
     // Lucide 아이콘 렌더링
     createIcons({ icons, attrs: { width: 22, height: 22, stroke: 'currentColor', 'stroke-width': 1.75 } });
-    window.addEventListener('resize', () => {
-      resize();
-      render();
-    });
+    window.addEventListener('resize', () => { scheduleResize(); render(); });
+    window.addEventListener('orientationchange', () => { setTimeout(scheduleResize, 60); });
+    window.addEventListener('pageshow', (e) => { if (e.persisted) scheduleResize(); });
+    if (window.visualViewport) {
+      visualViewport.addEventListener('resize', scheduleResize);
+      visualViewport.addEventListener('scroll', scheduleResize);
+    }
 
     let drawing = false;
     let points  = [];
@@ -834,7 +855,11 @@
       const drawH = imgH * scale;
       const dx = Math.floor(marginX + (boxW - drawW) / 2);
       const dy = Math.floor(marginY + (boxH - drawH) / 2);
-      ectx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+      // 전체 배경을 흰색으로 채워 투명 영역이 생기지 않도록 처리
+      ectx.save();
+      ectx.fillStyle = '#ffffff';
+      ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+      ectx.restore();
       ectx.drawImage(bgEl, dx, dy, drawW, drawH);
 
       // 그려진 스트로크 캔버스 합성
@@ -923,23 +948,24 @@
     }
 
     function resize() {
-      // 1) 캔버스는 전체 화면 사용
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // 1) 캔버스는 전체 화면 사용 (visualViewport 우선)
+      const vp = getViewportSize();
+      canvas.width = vp.width;
+      canvas.height = vp.height;
       canvas.style.left = '0px';
       canvas.style.top = '0px';
       canvas.style.width = `${canvas.width}px`;
       canvas.style.height = `${canvas.height}px`;
 
       // 2) 배경 이미지는 여백이 있도록 중앙에 contain
-      const isDesktop = window.innerWidth >= 769;
+      const isDesktop = vp.width >= 769;
       const marginX = isDesktop ? 140 : 40; // 좌우 여백(확대)
       const marginY = isDesktop ? 80 : 24; // 상하 여백
 
       const bg = document.getElementById('bgImage');
       if (bg) {
-        const boxW = Math.max(200, window.innerWidth - marginX * 2);
-        const boxH = Math.max(200, window.innerHeight - marginY * 2);
+        const boxW = Math.max(200, vp.width - marginX * 2);
+        const boxH = Math.max(200, vp.height - marginY * 2);
         bg.style.left = `${marginX}px`;
         bg.style.top = `${marginY}px`;
         bg.style.width = `${boxW}px`;
