@@ -178,6 +178,8 @@
       border-radius: 16px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       backdrop-filter: saturate(180%) blur(16px);
+      max-height: min(80vh, 560px);
+      overflow: auto;
     }
     @media (prefers-color-scheme: dark) {
       #colorModal .dialog { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
@@ -191,8 +193,19 @@
     .swatch-grid { display: grid; grid-template-columns: repeat(8, 28px); grid-auto-rows: 28px; gap: 8px; }
     .swatch-cell { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 1px 2px rgba(0,0,0,0.12) inset; cursor: pointer; }
     @media (prefers-color-scheme: dark) { .swatch-cell { border-color: rgba(255,255,255,0.18); } }
-    .spectrum-wrap { width: 280px; height: 160px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); overflow: hidden; position: relative; z-index: 0; margin-bottom: 10px; }
-    #spectrum { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+    .spectrum-wrap {
+      width: min(320px, 90vw);
+      aspect-ratio: 7 / 4; /* 안정적인 비율 유지 */
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.12);
+      overflow: hidden;
+      position: relative;
+      z-index: 0;
+      margin-bottom: 10px;
+      align-self: center;
+    }
+    #spectrum { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; position: relative; z-index: 0; }
     @media (prefers-color-scheme: dark) { .spectrum-wrap { border-color: rgba(255,255,255,0.18); } }
     .color-preview {
       width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9);
