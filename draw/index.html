@@ -238,7 +238,7 @@
         background: rgba(255,255,255,0.12);
         border-color: rgba(255,255,255,0.2);
       }
-      .toolbar button.active {
+    .toolbar button.active {
         background: rgba(10,132,255,0.22);
         border-color: rgba(10,132,255,0.5);
         color: #9fc9ff;
@@ -368,7 +368,11 @@
       <div class="preview"><div id="sizeDot" class="size-dot" style="width:8px;height:8px;background:#0a84ff;"></div></div>
     </div>
   </div>
-  <img src="onlyu.svg" alt="배경 SVG" class="background-image" id="bgImage">
+  <svg id="bgSvg" class="background-image" viewBox="0 0 550 550" preserveAspectRatio="xMidYMid meet" aria-label="배경 SVG" role="img">
+    <path d="M143.135 550C179.798 501.708 173.595 480.663 181.43 425.598C187.936 379.927 226.377 345.665 272.327 344.573C318.302 343.481 358.315 375.922 366.924 421.241C371.096 443.124 368.98 465.322 373.2 487.217C377.396 509.22 384.204 529.804 393.914 550H412.5C393.817 514.306 385.196 479.255 385.196 438.936C385.196 377.597 335.642 327.885 274.54 327.885C213.438 327.885 163.885 377.609 163.885 438.936C163.885 483.612 151.285 516.697 121.635 550H143.135Z" fill="black"/>
+    <path d="M274.989 0C335.744 0.000178263 384.993 49.2389 384.993 109.993C384.993 170.747 335.743 219.997 274.989 219.997C214.235 219.997 164.985 170.735 164.984 109.993C164.984 49.2508 214.235 0 274.989 0ZM274.993 16.4941C223.351 16.4944 181.506 58.3631 181.506 109.993C181.506 161.623 223.363 203.506 274.993 203.506C326.636 203.506 368.493 161.636 368.493 109.993C368.493 58.351 326.635 16.4941 274.993 16.4941Z" fill="black"/>
+    <path d="M549.999 265.599L0 265.599L0 282.052L549.999 282.052V265.599Z" fill="black"/>
+  </svg>
   <canvas id="c"></canvas>
 
   <!-- ① CDN(EcmaScript Module)에서 라이브러리 로드  -->
@@ -419,7 +423,7 @@
       if (resizeScheduled) return;
       resizeScheduled = true;
       requestAnimationFrame(() => {
-        resize();
+      resize();
         // 주소창 애니메이션 종료 후 한 번 더 보정
         setTimeout(() => { resize(); resizeScheduled = false; }, 120);
       });
@@ -852,35 +856,41 @@
       const ectx = exportCanvas.getContext('2d');
 
       // 배경 이미지: 화면 여백을 반영해 contain으로 그리기
-      const bgEl = document.getElementById('bgImage');
+      const bgEl = document.getElementById('bgSvg');
       const isDesktop = window.innerWidth >= 769;
       const marginX = isDesktop ? 140 : 40;
       const marginY = isDesktop ? 80 : 24;
       const boxW = Math.max(200, exportCanvas.width - marginX * 2);
       const boxH = Math.max(200, exportCanvas.height - marginY * 2);
-
-      const imgW = bgEl.naturalWidth || bgEl.width || boxW;
-      const imgH = bgEl.naturalHeight || bgEl.height || boxH;
-      const scale = Math.min(boxW / imgW, boxH / imgH);
-      const drawW = imgW * scale;
-      const drawH = imgH * scale;
-      const dx = Math.floor(marginX + (boxW - drawW) / 2);
-      const dy = Math.floor(marginY + (boxH - drawH) / 2);
-      // 전체 배경을 흰색으로 채워 투명 영역이 생기지 않도록 처리
+      // 흰 배경 채우기
       ectx.save();
       ectx.fillStyle = '#ffffff';
       ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
       ectx.restore();
-      ectx.drawImage(bgEl, dx, dy, drawW, drawH);
-
-      // 그려진 스트로크 캔버스 합성
+      // SVG를 이미지로 변환하여 비율을 유지하며 그리기
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(bgEl);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+        const scale = Math.min(boxW / imgW, boxH / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const dx = Math.floor(marginX + (boxW - drawW) / 2);
+        const dy = Math.floor(marginY + (boxH - drawH) / 2);
+        ectx.drawImage(img, dx, dy, drawW, drawH);
+        // 그려진 스트로크 캔버스 합성 후 저장
       ectx.drawImage(canvas, 0, 0);
-
-      // 다운로드 링크 생성
       const link = document.createElement('a');
       link.href = exportCanvas.toDataURL('image/png');
       link.download = 'drawing.png';
       link.click();
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
     });
 
     /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
@@ -970,7 +980,7 @@
       const marginTop = isDesktop ? 80 : 24;
       const toolbarRect = toolbarEl?.getBoundingClientRect?.();
       const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
-      const bg = document.getElementById('bgImage');
+      const bg = document.getElementById('bgSvg');
       if (bg) {
         const boxW = Math.max(200, vp.width - marginX * 2);
         // 툴바보다 훨씬 넉넉한 하단 여백을 확보
