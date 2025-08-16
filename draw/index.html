@@ -23,7 +23,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      object-position: center center;
       z-index: 1;
     }
     /* === 툴바 스타일 === */
@@ -33,15 +34,18 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 3;
-      background: rgba(0,0,0,0.8);
+      background: rgba(255,255,255,0.7);
+      color: #111;
       padding: 12px 16px;
       border-radius: 25px;
       display: flex;
       align-items: center;
       gap: 12px;
-      font-family: sans-serif;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.06);
     }
     
     /* 데스크탑 최적화 */
@@ -67,59 +71,174 @@
     }
     .toolbar button {
       cursor: pointer;
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.08);
+      color: inherit;
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      position: relative;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
     }
     .toolbar button:hover,
     .toolbar button:active {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.1);
+      background: rgba(255,255,255,0.8);
+      border-color: rgba(0,0,0,0.12);
+      transform: scale(1.06);
     }
     .toolbar input[type="color"] {
-      width: 44px;
-      height: 44px;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
+      /* 시각적으로 숨기되 DOM에는 존재 (showPicker 호출용) */
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      border: 0;
+      padding: 0;
       background: none;
     }
-    .toolbar input[type="range"] {
-      width: 80px;
-      height: 44px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 22px;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    .toolbar input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    .toolbar input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      cursor: pointer;
-      border: none;
-    }
+    .toolbar input[type="range"] { display: none; }
     
     .toolbar button.active {
-      background: rgba(255,255,255,0.4);
-      transform: scale(1.1);
+      background: rgba(0,122,255,0.12);
+      border-color: rgba(0,122,255,0.35);
+      color: #0a84ff;
+      transform: scale(1.06);
+    }
+    /* 사이즈 팝오버 */
+    .size-popover { position: fixed; display: none; z-index: 5; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.9); backdrop-filter: saturate(180%) blur(16px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+    .size-popover.open { display: block; }
+    .size-popover .row { margin: 0; }
+    .size-popover .row-presets { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+    .size-popover .row-slider { display: grid; grid-template-columns: 1fr auto 56px; align-items: center; column-gap: 10px; }
+    .size-popover .label { display: none; }
+    .size-popover input[type="range"] { display: block; width: 100%; height: 6px; background: linear-gradient(90deg, #e5e7eb, #9ca3af, #374151); border-radius: 999px; -webkit-appearance: none; appearance: none; }
+    .size-popover input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .size-popover input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: #fff; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); }
+    .size-popover .value { width: 34px; text-align: right; font-size: 12px; color: #333; }
+    .size-popover .preview { width: 56px; height: 56px; border-radius: 10px; position: relative; background: conic-gradient(#eee 25%, #fff 0 50%, #eee 0 75%, #fff 0); background-size: 12px 12px; border: 1px solid rgba(0,0,0,0.08); }
+    .size-popover .size-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .size-popover .presets { display: flex; gap: 6px; }
+    .size-popover .preset-btn { width: 28px; height: 28px; border-radius: 14px; background: #fff; border: 1px solid rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+    .size-popover .preset-btn.active { border-color: rgba(10,132,255,0.6); box-shadow: 0 0 0 2px rgba(10,132,255,0.25) inset; }
+    .size-popover .preset-dot { background: #0a84ff; border-radius: 50%; box-shadow: 0 1px 1px rgba(0,0,0,0.15); }
+    .size-popover.eraser-mode .preset-dot { background: #222; }
+    .size-popover.eraser-mode .preset-btn.active { border-color: rgba(100,100,100,0.6); box-shadow: 0 0 0 2px rgba(100,100,100,0.25) inset; }
+    @media (prefers-color-scheme: dark) {
+      .size-popover { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+      .size-popover .label { color: #c9c9ce; }
+      .size-popover .value { color: #f5f5f7; }
+    }
+    .palette {
+      display: grid; grid-template-columns: repeat(3, 40px); grid-auto-rows: 40px;
+      gap: 12px; margin: 0 10px; align-items: center;
+    }
+    .swatch {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.85); box-sizing: border-box;
+      background: transparent;
+      cursor: pointer; position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      -webkit-appearance: none; appearance: none; outline: none;
+    }
+    .swatch::after {
+      content: ""; position: absolute; inset: 4px; border-radius: 50%;
+      background: var(--swatch-color);
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -3px 6px rgba(0,0,0,0.2);
+    }
+    .swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(0,0,0,0.9); }
+    .swatch[data-color="#000000"].active { box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(0,0,0,1); }
+    .swatch.rainbow::after { background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+    @media (prefers-color-scheme: dark) {
+      .swatch { border-color: rgba(255,255,255,0.6); box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+      .swatch.active { box-shadow: 0 0 0 2px #e5e5ea, 0 0 0 5px #111; }
+      .swatch[data-color="#000000"].active { box-shadow: 0 0 0 2px #e5e5ea, 0 0 0 5px #111; }
+    }
+
+    /* 현재 선택된 색상 미리보기 점 */
+    .color-dot {
+      position: absolute; width: 14px; height: 14px; border-radius: 50%;
+      right: -3px; bottom: -3px; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+    /* 커스텀 컬러 모달 */
+    #colorModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 10; }
+    #colorModal.open { display: flex; }
+    #colorModal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.25); backdrop-filter: blur(4px); }
+    #colorModal .dialog {
+      position: relative; z-index: 1; min-width: 280px; max-width: 90vw;
+      background: rgba(255,255,255,0.8); color: #111; border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      backdrop-filter: saturate(180%) blur(16px);
+    }
+    @media (prefers-color-scheme: dark) {
+      #colorModal .dialog { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+    }
+    .tabs { display: flex; gap: 8px; margin: 8px 0 12px; }
+    .tabs button { flex: 1; padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.8); cursor: pointer; font-size: 13px; }
+    .tabs button.active { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #0a84ff; }
+    @media (prefers-color-scheme: dark) { .tabs button { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #f5f5f7; } .tabs button.active { background: rgba(10,132,255,0.22); border-color: rgba(10,132,255,0.5); color: #9fc9ff; } }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .swatch-grid { display: grid; grid-template-columns: repeat(8, 28px); grid-auto-rows: 28px; gap: 8px; }
+    .swatch-cell { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 1px 2px rgba(0,0,0,0.12) inset; cursor: pointer; }
+    @media (prefers-color-scheme: dark) { .swatch-cell { border-color: rgba(255,255,255,0.18); } }
+    .spectrum-wrap { width: 280px; height: 160px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); overflow: hidden; position: relative; z-index: 0; margin-bottom: 10px; }
+    #spectrum { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+    @media (prefers-color-scheme: dark) { .spectrum-wrap { border-color: rgba(255,255,255,0.18); } }
+    .color-preview {
+      width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: inset 0 2px 6px rgba(255,255,255,0.18), inset 0 -4px 8px rgba(0,0,0,0.25);
+      margin-bottom: 12px;
+    }
+    .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; margin: 8px 0; position: relative; z-index: 1; }
+    .row label { font-size: 12px; color: #555; }
+    @media (prefers-color-scheme: dark) { .row label { color: #c9c9ce; } }
+    .row input[type="range"] { width: 200px; }
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; position: relative; z-index: 1; }
+    .actions button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.8); cursor: pointer; }
+    @media (prefers-color-scheme: dark) { .actions button { background: rgba(255,255,255,0.08); color: #f5f5f7; border-color: rgba(255,255,255,0.12); } }
+    .picked-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-top: 10px; }
+    .picked-title { font-size: 12px; color: #666; }
+    @media (prefers-color-scheme: dark) { .picked-title { color: #c9c9ce; } }
+    .picked-list { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+    .picked-chip { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 1px 2px rgba(0,0,0,0.12) inset; cursor: pointer; flex: 0 0 auto; }
+    @media (prefers-color-scheme: dark) { .picked-chip { border-color: rgba(255,255,255,0.18); } }
+    .toolbar svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+    @media (prefers-color-scheme: dark) {
+      .toolbar {
+        background: rgba(20,20,24,0.7);
+        color: #f5f5f7;
+        border-color: rgba(255,255,255,0.08);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      }
+      .toolbar button {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.12);
+      }
+      .toolbar button:hover,
+      .toolbar button:active {
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.2);
+      }
+      .toolbar button.active {
+        background: rgba(10,132,255,0.22);
+        border-color: rgba(10,132,255,0.5);
+        color: #9fc9ff;
+      }
     }
     
     /* 모바일 최적화 */
@@ -142,6 +261,9 @@
         width: 70px;
         height: 40px;
       }
+      /* 모바일·좁은 화면: 팔레트는 레인보우만 노출 */
+      .palette { grid-template-columns: 40px; gap: 8px; margin: 0 6px; }
+      .palette .swatch:not(.rainbow) { display: none; }
     }
     
     /* 매우 작은 화면 */
@@ -164,27 +286,91 @@
         width: 60px;
         height: 36px;
       }
+      /* 아주 좁은 화면에서도 레인보우만 유지 */
+      .palette { grid-template-columns: 36px; gap: 6px; margin: 0 4px; }
+      .palette .swatch:not(.rainbow) { display: none; }
     }
   </style>
 </head>
 <body>
   <!-- === 그리기 툴바 === -->
-  <div class="toolbar">
-    <button id="brushBtn" title="붓" class="active">🖌</button>
-    <button id="eraserBtn" title="지우개">🧽</button>
-    <input type="color" id="colorPicker" value="#000000" title="색 선택" />
-    <input type="range" id="brushSize" min="2" max="30" value="8" title="붓 크기" />
-    <button id="undoBtn" title="뒤로 가기">↶</button>
-    <button id="redoBtn" title="앞으로 가기">↷</button>
-    <button id="clearBtn" title="모두 지우기">🗑</button>
-    <button id="saveBtn" title="저장">💾</button>
+  <div class="toolbar" id="toolbar">
+    <button id="brushBtn" title="붓" class="active" aria-label="Brush"><i data-lucide="paintbrush-2"></i><span class="color-dot" id="currentColorDot"></span></button>
+    <button id="eraserBtn" title="지우개" aria-label="Eraser"><i data-lucide="eraser"></i></button>
+    <div class="palette" id="palette">
+      <!-- 2열 x 3 기본 컬러 구성: 검정, 블루, 그린 / 옐로, 레드, 레인보우 -->
+      <button class="swatch active" data-color="#000000" style="--swatch-color:#000000" title="Black" aria-label="Black"></button>
+      <button class="swatch" data-color="#0a84ff" style="--swatch-color:#0a84ff" title="Blue" aria-label="Blue"></button>
+      <button class="swatch" data-color="#34c759" style="--swatch-color:#34c759" title="Green" aria-label="Green"></button>
+      <button class="swatch" data-color="#ffd60a" style="--swatch-color:#ffd60a" title="Yellow" aria-label="Yellow"></button>
+      <button class="swatch" data-color="#ff3b30" style="--swatch-color:#ff3b30" title="Red" aria-label="Red"></button>
+      <button class="swatch rainbow" data-color="advanced" title="Advanced colors" aria-label="Advanced colors"></button>
+    </div>
+    <input type="color" id="colorPicker" value="#000000" title="색 선택(어드밴스드)" aria-label="Pick color advanced" />
+    <!-- 기본 툴바에서는 크기 슬라이더 제거 -->
+    <button id="undoBtn" title="뒤로 가기" aria-label="Undo"><i data-lucide="undo-2"></i></button>
+    <button id="redoBtn" title="앞으로 가기" aria-label="Redo"><i data-lucide="redo-2"></i></button>
+    <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
+    <button id="saveBtn" title="저장" aria-label="Save"><i data-lucide="save"></i></button>
   </div>
-  <img src="KakaoTalk_20250723_142159506.jpg" alt="배경 이미지" class="background-image">
+  <!-- 커스텀 컬러 선택 모달 -->
+  <div id="colorModal" role="dialog" aria-modal="true" aria-labelledby="colorTitle">
+    <div class="backdrop"></div>
+    <div class="dialog">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <div class="color-preview" id="customColorPreview"></div>
+        <div>
+          <div id="colorTitle" style="font-weight:600;">색상 선택</div>
+          <div style="font-size:12px; color:#666;">원하는 색을 조절하세요</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button id="tabBtnSwatches" class="active">팔레트</button>
+        <button id="tabBtnSpectrum">스펙트럼</button>
+        <button id="tabBtnSliders">슬라이더</button>
+      </div>
+      <div id="tab-swatches" class="tab-panel active">
+        <div id="swatchGrid" class="swatch-grid"></div>
+      </div>
+      <div id="tab-spectrum" class="tab-panel">
+        <div class="spectrum-wrap"><canvas id="spectrum" width="280" height="160"></canvas></div>
+        <div class="row"><label for="hue2">Hue</label><input type="range" id="hue2" min="0" max="360" value="200"></div>
+        <div class="picked-row">
+          <div class="picked-title">선택한 색</div>
+          <div id="pickedList" class="picked-list"></div>
+          <button id="clearPicked" style="padding:6px 10px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.8);">초기화</button>
+        </div>
+      </div>
+      <div id="tab-sliders" class="tab-panel">
+        <div class="row"><label for="hue">Hue</label><input type="range" id="hue" min="0" max="360" value="200"></div>
+        <div class="row"><label for="sat">Saturation</label><input type="range" id="sat" min="0" max="100" value="80"></div>
+        <div class="row"><label for="lit">Lightness</label><input type="range" id="lit" min="0" max="100" value="50"></div>
+        <div class="row"><label for="alpha">Opacity</label><input type="range" id="alpha" min="10" max="100" value="100"></div>
+      </div>
+      <div class="actions">
+        <button id="colorCancel">취소</button>
+        <button id="colorApply">적용</button>
+      </div>
+    </div>
+  </div>
+  <!-- 붓/지우개 크기 팝오버 -->
+  <div id="sizePopover" class="size-popover" role="dialog" aria-modal="false">
+    <div class="row row-presets">
+      <div class="presets" id="sizePresets"></div>
+    </div>
+    <div class="row row-slider">
+      <input type="range" id="sizeSlider" min="2" max="40" value="8" />
+      <div class="value" id="sizeValue">8</div>
+      <div class="preview"><div id="sizeDot" class="size-dot" style="width:8px;height:8px;background:#0a84ff;"></div></div>
+    </div>
+  </div>
+  <img src="onlyu.svg" alt="배경 SVG" class="background-image" id="bgImage">
   <canvas id="c"></canvas>
 
   <!-- ① CDN(EcmaScript Module)에서 라이브러리 로드  -->
   <script type="module">
     import { getStroke } from 'https://cdn.jsdelivr.net/npm/perfect-freehand@1.2.2/+esm';
+    import { createIcons, icons } from 'https://cdn.jsdelivr.net/npm/lucide@0.454.0/+esm';
 
     /* ===== 캔버스 및 상태 변수 준비 ===== */
     const canvas  = document.getElementById('c');
@@ -192,13 +378,16 @@
     const brushBtn = document.getElementById('brushBtn');
     const eraserBtn = document.getElementById('eraserBtn');
     const colorPicker = document.getElementById('colorPicker');
-    const brushSizeInput = document.getElementById('brushSize');
+    const toolbarEl = document.getElementById('toolbar');
+    const paletteEl = document.getElementById('palette');
     const undoBtn  = document.getElementById('undoBtn');
     const redoBtn  = document.getElementById('redoBtn');
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn  = document.getElementById('saveBtn');
 
     resize();
+    // Lucide 아이콘 렌더링
+    createIcons({ icons, attrs: { width: 22, height: 22, stroke: 'currentColor', 'stroke-width': 1.75 } });
     window.addEventListener('resize', () => {
       resize();
       render();
@@ -210,29 +399,385 @@
     const undoneStrokes = [];    // redo를 위한 스택
 
     let currentColor = colorPicker.value;
-    let currentSize  = Number(brushSizeInput.value);
+    let currentSize  = 8;
     let isEraser = false;
 
     /* ===== UI 이벤트 ===== */
+    // 사이즈 팝오버
+    const sizePopover = document.getElementById('sizePopover');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const sizeValue = document.getElementById('sizeValue');
+    const sizeDot = document.getElementById('sizeDot');
+    const sizePresetsEl = document.getElementById('sizePresets');
+    sizeSlider.value = String(currentSize);
+    sizeValue.textContent = String(currentSize);
+    function syncSizePreview() {
+      sizeValue.textContent = String(currentSize);
+      const d = Math.max(2, Math.min(40, currentSize));
+      if (sizeDot) {
+        sizeDot.style.width = `${d}px`;
+        sizeDot.style.height = `${d}px`;
+        sizeDot.style.background = isEraser ? '#222' : currentColor;
+      }
+      // 프리셋 활성화 표시
+      const nearest = presetSizes.reduce((a, b) => Math.abs(b - currentSize) < Math.abs(a - currentSize) ? b : a, presetSizes[0]);
+      Array.from(sizePresetsEl.children).forEach((btn) => btn.classList.toggle('active', Number(btn.getAttribute('data-size')) === nearest));
+    }
+    sizeSlider.addEventListener('input', (e) => {
+      currentSize = Number(e.target.value);
+      syncSizePreview();
+    });
+    // 5개 프리셋 구성
+    const presetSizes = [4, 8, 16, 26, 36];
+    function buildSizePresets() {
+      sizePresetsEl.innerHTML = '';
+      presetSizes.forEach((sz) => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-btn';
+        btn.setAttribute('data-size', String(sz));
+        const dot = document.createElement('div');
+        dot.className = 'preset-dot';
+        dot.style.width = `${Math.max(3, Math.min(18, Math.round(sz / 2)))}px`;
+        dot.style.height = dot.style.width;
+        btn.appendChild(dot);
+        btn.addEventListener('click', () => {
+          currentSize = sz;
+          sizeSlider.value = String(currentSize);
+          syncSizePreview();
+        });
+        sizePresetsEl.appendChild(btn);
+      });
+    }
+    buildSizePresets();
+    function showSizePopover(anchorEl) {
+      const rect = anchorEl.getBoundingClientRect();
+      const pop = sizePopover;
+      sizeSlider.value = String(currentSize);
+      syncSizePreview();
+      const margin = 8;
+      const popWidth = Math.min(260, Math.max(200, window.innerWidth - margin * 2));
+      pop.style.width = `${popWidth}px`;
+      // 먼저 보이지 않게 띄워 높이를 구함
+      pop.classList.add('open');
+      pop.style.visibility = 'hidden';
+      pop.style.left = '0px';
+      pop.style.top = '0px';
+      const popRect = pop.getBoundingClientRect();
+      const popHeight = popRect.height;
+      // 가로 중앙 정렬 + 화면 안 클램프
+      let left = rect.left + rect.width / 2 - popWidth / 2;
+      left = Math.max(margin, Math.min(left, window.innerWidth - popWidth - margin));
+      // 기본은 버튼 위, 공간이 부족하면 아래, 그래도 부족하면 화면 안으로 클램프
+      let top = rect.top - popHeight - 8;
+      if (top < margin) {
+        top = rect.bottom + 8;
+      }
+      top = Math.max(margin, Math.min(top, window.innerHeight - popHeight - margin));
+      pop.style.left = `${Math.round(left)}px`;
+      pop.style.top = `${Math.round(top)}px`;
+      pop.style.visibility = 'visible';
+    }
+    function hideSizePopover() { sizePopover.classList.remove('open'); }
+
     brushBtn.addEventListener('click', () => {
       isEraser = false;
       brushBtn.classList.add('active');
       eraserBtn.classList.remove('active');
+      sizePopover.classList.remove('eraser-mode');
+      showSizePopover(brushBtn);
     });
 
     eraserBtn.addEventListener('click', () => {
       isEraser = true;
       eraserBtn.classList.add('active');
       brushBtn.classList.remove('active');
+      sizePopover.classList.add('eraser-mode');
+      showSizePopover(eraserBtn);
     });
+
+    // 팝오버 바깥 클릭 시 닫기
+    document.addEventListener('pointerdown', (e) => {
+      if (!sizePopover.classList.contains('open')) return;
+      if (e.target.closest('#sizePopover') || e.target.closest('#brushBtn') || e.target.closest('#eraserBtn')) return;
+      hideSizePopover();
+    });
+
+    const colorDot = document.getElementById('currentColorDot');
+    function updateCurrentColorDot(color) {
+      if (colorDot) colorDot.style.background = color;
+    }
 
     colorPicker.addEventListener('input', (e) => {
       currentColor = e.target.value;
+      updateCurrentColorDot(currentColor);
+      paletteEl.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
     });
 
-    brushSizeInput.addEventListener('input', (e) => {
-      currentSize = Number(e.target.value);
+    // 기본 팔레트 스와치 클릭
+    function openColorPickerNear(anchorEl) {
+      // 우선 showPicker 지원 시 사용
+      if (typeof colorPicker.showPicker === 'function') {
+        try {
+          colorPicker.showPicker();
+          return;
+        } catch (_) {}
+      }
+      // 폴백: 화면 내 보이지 않게 위치시킨 뒤 click() 호출
+      const rect = anchorEl.getBoundingClientRect();
+      const prev = {
+        position: colorPicker.style.position,
+        left: colorPicker.style.left,
+        top: colorPicker.style.top,
+        opacity: colorPicker.style.opacity,
+        pointerEvents: colorPicker.style.pointerEvents
+      };
+      colorPicker.style.position = 'fixed';
+      colorPicker.style.left = `${Math.round(rect.left)}px`;
+      colorPicker.style.top = `${Math.round(rect.top)}px`;
+      colorPicker.style.opacity = '0';
+      colorPicker.style.pointerEvents = 'auto';
+      colorPicker.click();
+      // 잠시 후 원래 숨김 상태로 복구
+      setTimeout(() => {
+        colorPicker.style.position = prev.position || 'absolute';
+        colorPicker.style.left = prev.left || '-9999px';
+        colorPicker.style.top = prev.top || '0';
+        colorPicker.style.opacity = prev.opacity || '0';
+        colorPicker.style.pointerEvents = prev.pointerEvents || 'none';
+      }, 300);
+    }
+
+    // 커스텀 컬러 모달 로직
+    const colorModal = document.getElementById('colorModal');
+    const hueEl = document.getElementById('hue');
+    const satEl = document.getElementById('sat');
+    const litEl = document.getElementById('lit');
+    const alphaEl = document.getElementById('alpha');
+    const previewEl = document.getElementById('customColorPreview');
+    const applyBtn = document.getElementById('colorApply');
+    const cancelBtn = document.getElementById('colorCancel');
+    const tabBtnSwatches = document.getElementById('tabBtnSwatches');
+    const tabBtnSpectrum = document.getElementById('tabBtnSpectrum');
+    const tabBtnSliders = document.getElementById('tabBtnSliders');
+    const tabSwatches = document.getElementById('tab-swatches');
+    const tabSpectrum = document.getElementById('tab-spectrum');
+    const tabSliders = document.getElementById('tab-sliders');
+    const swatchGrid = document.getElementById('swatchGrid');
+    const spectrumCanvas = document.getElementById('spectrum');
+    const hue2El = document.getElementById('hue2');
+    const pickedListEl = document.getElementById('pickedList');
+    const clearPickedBtn = document.getElementById('clearPicked');
+    const pickedColors = [];
+
+    function hexToRgb(hex) {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
+    }
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h *= 60;
+      }
+      return { h, s: s * 100, l: l * 100 };
+    }
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const k = n => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+      return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+    }
+    function setPreviewFromSliders() {
+      const h = Number(hueEl.value), s = Number(satEl.value), l = Number(litEl.value);
+      const hex = hslToHex(h, s, l);
+      const a = Number(alphaEl?.value || 100) / 100;
+      previewEl.style.background = hex;
+      previewEl.style.opacity = String(a);
+      return hex;
+    }
+    function openColorModal() {
+      // 현재 색을 HSL로 복원
+      const { r, g, b } = hexToRgb(currentColor);
+      const { h, s, l } = rgbToHsl(r, g, b);
+      hueEl.value = Math.round(h);
+      satEl.value = Math.round(s);
+      litEl.value = Math.round(l);
+      if (alphaEl) alphaEl.value = 100;
+      setPreviewFromSliders();
+      colorModal.classList.add('open');
+      // 스펙트럼 초기 그리기
+      drawSpectrum();
+    }
+    function closeColorModal() { colorModal.classList.remove('open'); }
+    hueEl.addEventListener('input', setPreviewFromSliders);
+    satEl.addEventListener('input', setPreviewFromSliders);
+    litEl.addEventListener('input', setPreviewFromSliders);
+    alphaEl?.addEventListener('input', setPreviewFromSliders);
+    applyBtn.addEventListener('click', () => {
+      const hex = setPreviewFromSliders();
+      currentColor = hex;
+      colorPicker.value = hex;
+      updateCurrentColorDot(currentColor);
+      closeColorModal();
     });
+    cancelBtn.addEventListener('click', closeColorModal);
+    colorModal.querySelector('.backdrop').addEventListener('click', closeColorModal);
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeColorModal(); });
+    // 스펙트럼 외 클릭 시 드래그 종료
+    colorModal.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('#spectrum')) return;
+      spectrumDragging = false;
+    });
+
+    // 탭 전환 로직
+    function setActiveTab(tab) {
+      [tabBtnSwatches, tabBtnSpectrum, tabBtnSliders].forEach(b => b.classList.remove('active'));
+      [tabSwatches, tabSpectrum, tabSliders].forEach(p => p.classList.remove('active'));
+      if (tab === 'swatches') { tabBtnSwatches.classList.add('active'); tabSwatches.classList.add('active'); }
+      if (tab === 'spectrum') { tabBtnSpectrum.classList.add('active'); tabSpectrum.classList.add('active'); drawSpectrum(); }
+      if (tab === 'sliders') { tabBtnSliders.classList.add('active'); tabSliders.classList.add('active'); }
+    }
+    tabBtnSwatches.addEventListener('click', () => setActiveTab('swatches'));
+    tabBtnSpectrum.addEventListener('click', () => setActiveTab('spectrum'));
+    tabBtnSliders.addEventListener('click', () => setActiveTab('sliders'));
+
+    // 스펙트럼 캔버스: 선택한 Hue(hue2) 기반 SV 그리드
+    function drawSpectrum() {
+      const ctx2 = spectrumCanvas.getContext('2d');
+      // 레이아웃 크기 그대로 캔버스 버퍼 크기에 사용 (DPR 스케일링 비활성)
+      const cssW = Math.max(10, Math.floor(spectrumCanvas.clientWidth));
+      const cssH = Math.max(10, Math.floor(spectrumCanvas.clientHeight));
+      if (spectrumCanvas.width !== cssW || spectrumCanvas.height !== cssH) {
+        spectrumCanvas.width = cssW;
+        spectrumCanvas.height = cssH;
+      }
+      const w = cssW, h = cssH;
+      const hue = Number(hue2El.value);
+      // 좌→우: Saturation 0→100, 상→하: Lightness 100→0
+      for (let y = 0; y < h; y++) {
+        const l = 100 - (y / (h - 1)) * 100; // top bright, bottom dark
+        const grad = ctx2.createLinearGradient(0, 0, w, 0);
+        grad.addColorStop(0, `hsl(${hue}, 0%, ${l}%)`);
+        grad.addColorStop(1, `hsl(${hue}, 100%, ${l}%)`);
+        ctx2.fillStyle = grad;
+        ctx2.fillRect(0, y, w, 1);
+      }
+      // UI에서는 CSS 픽셀로 보여주도록 스케일 되므로 변환 없이 그린다
+    }
+    hue2El.addEventListener('input', drawSpectrum);
+    // 스펙트럼 클릭으로 색 선택
+    let spectrumDragging = false;
+    let longPressTimer = null;
+    spectrumCanvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); spectrumDragging = true; handleSpectrumPick(e);
+      // 모바일 롱프레스(500ms) 시 수집 모드로 간주하여 색 추가
+      longPressTimer = setTimeout(() => addPickedColor(setPreviewFromSliders()), 500);
+    });
+    spectrumCanvas.addEventListener('pointermove', (e) => {
+      if (!spectrumDragging) return; e.preventDefault(); handleSpectrumPick(e);
+    });
+    window.addEventListener('pointerup', () => { spectrumDragging = false; });
+    window.addEventListener('pointerup', () => { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } });
+    function handleSpectrumPick(e) {
+      const rect = spectrumCanvas.getBoundingClientRect();
+      const xCss = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+      const yCss = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+      const sat = Math.round((xCss / rect.width) * 100);
+      const lit = Math.round(100 - (yCss / rect.height) * 100);
+      hueEl.value = hue2El.value;
+      satEl.value = sat;
+      litEl.value = lit;
+      const hex = setPreviewFromSliders();
+      previewEl.style.background = hex;
+      // ctrlKey(데스크톱)/long-press(모바일) 없이 클릭 시 현재 색만 업데이트,
+      // ctrlKey가 눌리면 여러 색을 수집 리스트에 추가
+      if (e.ctrlKey) addPickedColor(hex);
+    }
+
+    function addPickedColor(hex) {
+      if (pickedColors[pickedColors.length - 1] === hex) return;
+      pickedColors.push(hex);
+      const chip = document.createElement('button');
+      chip.className = 'picked-chip';
+      chip.style.background = hex;
+      chip.setAttribute('title', hex);
+      chip.addEventListener('click', () => {
+        currentColor = hex;
+        colorPicker.value = hex;
+        updateCurrentColorDot(hex);
+      });
+      pickedListEl.appendChild(chip);
+    }
+    clearPickedBtn.addEventListener('click', () => {
+      pickedColors.length = 0;
+      pickedListEl.innerHTML = '';
+    });
+
+    // 스와치 팔레트 구성 (8x6 예시)
+    const baseRows = [
+      ['#000000','#202124','#5f6368','#80868b','#9aa0a6','#dadce0','#ffffff','#fffbfe'],
+      ['#0a84ff','#4285f4','#1a73e8','#1967d2','#1557b0','#8ab4f8','#aecbfa','#d2e3fc'],
+      ['#34c759','#0f9d58','#1e8e3e','#188038','#137333','#81c995','#a8dab5','#c6f7d0'],
+      ['#ffd60a','#fbbc04','#f29900','#e37400','#c75200','#fdd663','#fde293','#fff5c2'],
+      ['#ff3b30','#ea4335','#d93025','#c5221f','#b31412','#f28b82','#f6aea9','#fad2cf'],
+      ['#af52de','#9333ea','#7e22ce','#6d28d9','#5b21b6','#d8b4fe','#e9d5ff','#f3e8ff']
+    ];
+    function buildSwatchGrid() {
+      swatchGrid.innerHTML = '';
+      baseRows.forEach(row => {
+        row.forEach(hex => {
+          const div = document.createElement('div');
+          div.className = 'swatch-cell';
+          div.style.background = hex;
+          div.setAttribute('data-hex', hex);
+          swatchGrid.appendChild(div);
+        });
+      });
+    }
+    buildSwatchGrid();
+    swatchGrid.addEventListener('click', (e) => {
+      const cell = e.target.closest('.swatch-cell');
+      if (!cell) return;
+      const hex = cell.getAttribute('data-hex');
+      // 슬라이더와 프리뷰 동기화
+      const { r, g, b } = hexToRgb(hex);
+      const { h, s, l } = rgbToHsl(r, g, b);
+      hueEl.value = Math.round(h);
+      satEl.value = Math.round(s);
+      litEl.value = Math.round(l);
+      setPreviewFromSliders();
+    });
+
+    paletteEl.addEventListener('click', (e) => {
+      const target = e.target.closest('.swatch');
+      if (!target) return;
+      const color = target.getAttribute('data-color');
+      if (color === 'advanced') {
+        // 레인보우 클릭 시: 해당 스와치 활성화 표시 + 커스텀 컬러 모달 열기
+        paletteEl.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
+        target.classList.add('active');
+        setTimeout(() => openColorModal(), 0);
+        return;
+      }
+      currentColor = color;
+      colorPicker.value = color;
+      paletteEl.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
+      target.classList.add('active');
+      updateCurrentColorDot(currentColor);
+    });
+
+    // 고급 모드는 레인보우 버튼을 통해 진입
 
     undoBtn.addEventListener('click', () => {
       if (strokes.length) {
@@ -262,9 +807,24 @@
       exportCanvas.height = canvas.height;
       const ectx = exportCanvas.getContext('2d');
 
-      // 배경 이미지 그리기 (동일 비율로 스케일)
-      const backgroundImg = document.querySelector('.background-image');
-      ectx.drawImage(backgroundImg, 0, 0, exportCanvas.width, exportCanvas.height);
+      // 배경 이미지: 화면 여백을 반영해 contain으로 그리기
+      const bgEl = document.getElementById('bgImage');
+      const isDesktop = window.innerWidth >= 769;
+      const marginX = isDesktop ? 140 : 40;
+      const marginY = isDesktop ? 80 : 24;
+      const boxW = Math.max(200, exportCanvas.width - marginX * 2);
+      const boxH = Math.max(200, exportCanvas.height - marginY * 2);
+
+      const imgW = bgEl.naturalWidth || bgEl.width || boxW;
+      const imgH = bgEl.naturalHeight || bgEl.height || boxH;
+      const scale = Math.min(boxW / imgW, boxH / imgH);
+      const drawW = imgW * scale;
+      const drawH = imgH * scale;
+      const dx = Math.floor(marginX + (boxW - drawW) / 2);
+      const dy = Math.floor(marginY + (boxH - drawH) / 2);
+      ectx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+      ectx.drawImage(bgEl, dx, dy, drawW, drawH);
+
       // 그려진 스트로크 캔버스 합성
       ectx.drawImage(canvas, 0, 0);
 
@@ -277,6 +837,12 @@
 
     /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
     canvas.addEventListener('pointerdown', (e) => {
+      // 사이즈 팝오버가 열려 있으면 우선 닫고, 이번 입력은 그리기로 처리하지 않음
+      if (sizePopover.classList.contains('open')) {
+        hideSizePopover();
+        e.preventDefault();
+        return;
+      }
       drawing = true;
       points = [[e.offsetX, e.offsetY, e.pressure]];
       // 새 스트로크를 시작하면 redo 스택 초기화
@@ -345,17 +911,36 @@
     }
 
     function resize() {
-      // 데스크탑에서는 툴바 공간을 고려하여 캔버스 크기 조정
-      const isDesktop = window.innerWidth >= 769;
-      const toolbarHeight = isDesktop ? 80 : 70; // 툴바 + 여백
-      
+      // 1) 캔버스는 전체 화면 사용
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - toolbarHeight;
-      
-      // 캔버스 위치를 위로 조정하여 툴바 공간 확보
+      canvas.height = window.innerHeight;
+      canvas.style.left = '0px';
       canvas.style.top = '0px';
+      canvas.style.width = `${canvas.width}px`;
       canvas.style.height = `${canvas.height}px`;
+
+      // 2) 배경 이미지는 여백이 있도록 중앙에 contain
+      const isDesktop = window.innerWidth >= 769;
+      const marginX = isDesktop ? 140 : 40; // 좌우 여백(확대)
+      const marginY = isDesktop ? 80 : 24; // 상하 여백
+
+      const bg = document.getElementById('bgImage');
+      if (bg) {
+        const boxW = Math.max(200, window.innerWidth - marginX * 2);
+        const boxH = Math.max(200, window.innerHeight - marginY * 2);
+        bg.style.left = `${marginX}px`;
+        bg.style.top = `${marginY}px`;
+        bg.style.width = `${boxW}px`;
+        bg.style.height = `${boxH}px`;
+      }
     }
+
+    // 초기 팔레트 활성 색상 지정
+    (() => {
+      const first = paletteEl.querySelector('.swatch[data-color="#000000"]');
+      if (first) first.classList.add('active');
+      updateCurrentColorDot('#000000');
+    })();
   </script>
 </body>
 </html>
