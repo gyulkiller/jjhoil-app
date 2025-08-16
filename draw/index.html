@@ -959,25 +959,27 @@
     }
 
     function resize() {
-      // 1) 캔버스는 전체 화면 사용 (visualViewport 우선)
+      // 1) 화면 비율 변화에 의한 왜곡을 원천 차단: 정사각형 스테이지 유지
       const vp = getViewportSize();
-      // 버퍼 크기는 화면 픽셀 크기로, 스타일 크기는 CSS에서 고정
-      canvas.width = vp.width;
-      canvas.height = vp.height;
+      const stage = Math.floor(Math.min(vp.width, vp.height));
 
-      // 2) 배경 이미지는 여백이 있도록 중앙에 contain
-      const isDesktop = vp.width >= 769;
-      const marginX = isDesktop ? 140 : 40; // 좌우 여백(확대)
-      const marginY = isDesktop ? 80 : 24; // 상하 여백
+      // 캔버스 버퍼 및 스타일 모두 정사각형으로 설정하고 중앙 정렬
+      canvas.width = stage;
+      canvas.height = stage;
+      const left = Math.round((vp.width - stage) / 2);
+      const top  = Math.round((vp.height - stage) / 2);
+      canvas.style.left = `${left}px`;
+      canvas.style.top = `${top}px`;
+      canvas.style.width = `${stage}px`;
+      canvas.style.height = `${stage}px`;
 
+      // 2) 배경 SVG도 동일 스테이지에 맞춤 (object-fit으로 원본 비율 유지)
       const bg = document.getElementById('bgImage');
       if (bg) {
-        const boxW = Math.max(200, vp.width - marginX * 2);
-        const boxH = Math.max(200, vp.height - marginY * 2);
-        bg.style.left = `${marginX}px`;
-        bg.style.top = `${marginY}px`;
-        bg.style.width = `${boxW}px`;
-        bg.style.height = `${boxH}px`;
+        bg.style.left = `${left}px`;
+        bg.style.top = `${top}px`;
+        bg.style.width = `${stage}px`;
+        bg.style.height = `${stage}px`;
       }
     }
 
