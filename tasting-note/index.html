@@ -16,31 +16,7 @@
             align-items: center;
         }
 
-        .header-text {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 18px;
-            line-height: 1.6;
-        }
-
-        .highlight-yellow {
-            background-color: #FFEB3B;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .highlight-orange {
-            background-color: #FF9800;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .highlight-red {
-            background-color: #F44336;
-            padding: 2px 4px;
-            border-radius: 3px;
-            color: white;
-        }
+        
 
         .chart-container {
             position: relative;
@@ -147,6 +123,61 @@
             0% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        /* Header lines */
+        .header-text {
+            text-align: center;
+            margin: 12px 0 8px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #111;
+        }
+
+        /* Foods section */
+        .foods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 24px;
+        }
+        .food-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            background: #fff;
+        }
+        .food-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge {
+            background: #f5f5f5;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        .food-reason {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -159,24 +190,41 @@
             <div class="loader-text">로딩 중…</div>
         </div>
     </div>
-    <div class="header-text">
-        <span class="highlight-yellow">A salad with 138 sesame oil</span><br>
-        <span class="highlight-orange">Bibimbap made with 167 sesame oil</span><br>
-        <span class="highlight-red">A steak marinade using 178 sesame oil</span><br>
-        will be yummy 😋
-    </div>
+    
+
+    <div id="headerText" class="header-text"></div>
 
     <div class="chart-container">
         <canvas id="radarChart"></canvas>
         <div class="center-image"></div>
     </div>
 
+    <div class="foods">
+        <div class="food-card">
+            <div class="food-card-header"><span class="swatch" style="background:#FFEB3B"></span>참기름 138</div>
+            <div id="foods-138" class="badge-list"></div>
+            <div id="reason-138" class="food-reason"></div>
+        </div>
+        <div class="food-card">
+            <div class="food-card-header"><span class="swatch" style="background:#FF9800"></span>참기름 167</div>
+            <div id="foods-167" class="badge-list"></div>
+            <div id="reason-167" class="food-reason"></div>
+        </div>
+        <div class="food-card">
+            <div class="food-card-header"><span class="swatch" style="background:#F44336"></span>참기름 178</div>
+            <div id="foods-178" class="badge-list"></div>
+            <div id="reason-178" class="food-reason"></div>
+        </div>
+    </div>
+
     <script>
         const ctx = document.getElementById('radarChart').getContext('2d');
-        const BASE_URL = 'https://script.google.com/macros/s/AKfycbznu9-K4BJCHdv4klUg3vpa4KrhlBKuq9ppZ4Q139sY_UvfwWgBcVn2iUZWHeONM61nyQ/exec';
+
+        
+        const BASE_URL = 'https://script.google.com/macros/s/AKfycbxcu8yCdOHfsr9s5IwmPNUxxOcXYrjmH3jX4NZkUOjkGkvXpU3JOz2lq_KWKEFMt8ku-A/exec';
         const urlParams = new URLSearchParams(window.location.search);
-        const gParam = urlParams.get('g');
-        const API_URL = BASE_URL + (gParam ? ('?g=' + encodeURIComponent(gParam)) : '');
+        const aParam = urlParams.get('a');
+        const API_URL = BASE_URL + (aParam ? ('?a=' + encodeURIComponent(aParam)) : '');
 
         let radarChart = null;
 
@@ -264,6 +312,94 @@
             if (el) el.textContent = text;
         }
 
+        function extractFoodSelections(row, oilCode) {
+            const selections = new Set();
+            const baseMatcher = `참기름 ${oilCode}`;
+
+            // 1) Consolidated string answer
+            const stringKey = Object.keys(row).find(k => k.includes(baseMatcher) && k.includes('가장 잘 어울린다고') && !k.includes('('));
+            if (stringKey && typeof row[stringKey] === 'string' && row[stringKey].trim().length > 0) {
+                row[stringKey].split(',').forEach(item => {
+                    const t = item.trim();
+                    if (t) selections.add(t);
+                });
+            }
+
+            // 2) Boolean category answers in parentheses
+            Object.entries(row).forEach(([k, v]) => {
+                if (k.includes(baseMatcher) && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
+                    const label = k.substring(k.indexOf('(') + 1, k.lastIndexOf(')')).trim();
+                    if (label) selections.add(label);
+                }
+            });
+
+            return Array.from(selections);
+        }
+
+        function extractFoodReason(row, oilCode) {
+            const reasonKey = Object.keys(row).find(k => k.includes(`선택한 요리들이 참기름 ${oilCode}`));
+            const reason = reasonKey ? row[reasonKey] : '';
+            return typeof reason === 'string' ? reason.trim() : '';
+        }
+
+        function renderFoods(row) {
+            [138, 167, 178].forEach(code => {
+                const foods = extractFoodSelections(row, code);
+                const container = document.getElementById(`foods-${code}`);
+                const reasonEl = document.getElementById(`reason-${code}`);
+                if (!container) return;
+                container.innerHTML = '';
+                if (foods.length === 0) {
+                    const span = document.createElement('span');
+                    span.className = 'badge';
+                    span.textContent = '선택된 음식 없음';
+                    container.appendChild(span);
+                } else {
+                    foods.forEach(label => {
+                        const span = document.createElement('span');
+                        span.className = 'badge';
+                        span.textContent = label;
+                        container.appendChild(span);
+                    });
+                }
+                if (reasonEl) {
+                    const reason = extractFoodReason(row, code);
+                    reasonEl.textContent = reason ? `이유: ${reason}` : '';
+                }
+            });
+        }
+
+        function selectRepresentativeFood(foods) {
+            if (!Array.isArray(foods) || foods.length === 0) return '';
+            const tests = [
+                { keys: ['샐러드', '채소'], label: 'salad' },
+                { keys: ['비빔'], label: 'bibimbap' },
+                { keys: ['면', '소바', '국수'], label: 'noodles' },
+                { keys: ['전', '부침'], label: 'pancakes' },
+                { keys: ['해산물', '사시미', '새우', '해조'], label: 'seafood salad' },
+                { keys: ['두부', '식물성 단백질'], label: 'tofu dish' },
+                { keys: ['육류', '스테이크', '불고기', '삼겹살'], label: 'steak marinade' },
+                { keys: ['스프', '국물'], label: 'soup' }
+            ];
+            for (const t of tests) {
+                const hit = foods.find(f => t.keys.some(k => String(f).includes(k)));
+                if (hit) return t.label;
+            }
+            return 'dish';
+        }
+
+        function renderHeaderLines(row) {
+            const h = document.getElementById('headerText');
+            if (!h) return;
+            const f138 = selectRepresentativeFood(extractFoodSelections(row, 138)) || 'salad';
+            const f167 = selectRepresentativeFood(extractFoodSelections(row, 167)) || 'bibimbap';
+            const f178 = selectRepresentativeFood(extractFoodSelections(row, 178)) || 'steak marinade';
+            h.innerHTML = `A ${f138} with 138 sesame oil<br>` +
+                          `${f167.charAt(0).toUpperCase() + f167.slice(1)} made with 167 sesame oil<br>` +
+                          `A ${f178} using 178 sesame oil<br>` +
+                          `will be yummy 😋`;
+        }
+
         function hasValidDatasets(dsList) {
             // 하나라도 유효 숫자가 있으면 true
             return dsList.some(ds => Array.isArray(ds) && ds.some(v => Number.isFinite(v)));
@@ -328,6 +464,8 @@
                     ];
 
                     createChart(datasets);
+                    renderFoods(row);
+                    renderHeaderLines(row);
                     hideLoader();
                     break;
                 } catch (e) {
