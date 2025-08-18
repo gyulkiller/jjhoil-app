@@ -141,6 +141,35 @@
             color: #111;
         }
 
+        /* Top title banner */
+        .title-banner {
+            width: 100%;
+            text-align: center;
+            margin: 4px 0 10px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #FFD54F, #FF9800, #F44336);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        @media (max-width: 480px) {
+            .title-banner { font-size: 20px; }
+        }
+
+        .header-pill {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            margin : 3px 0;
+        }
+        .header-pill.yellow { background: #FFEB3B; color: #000; }
+        .header-pill.orange { background: #FF9800; color: #000; }
+        .header-pill.red { background: #F44336; color: #00; }
+
         /* Foods section */
         .foods {
             display: grid;
@@ -214,7 +243,7 @@
             <div class="loader-text">로딩 중…</div>
         </div>
     </div>
-    
+    <div id="titleBanner" class="title-banner"></div>
 
     <div id="headerText" class="header-text"></div>
 
@@ -223,23 +252,7 @@
         <div class="center-image"></div>
     </div>
 
-    <div class="foods">
-        <div class="food-card">
-            <div class="food-card-header"><span class="swatch" style="background:#FFEB3B"></span>참기름 138</div>
-            <div id="foods-138" class="badge-list"></div>
-            <div id="reason-138" class="food-reason"></div>
-        </div>
-        <div class="food-card">
-            <div class="food-card-header"><span class="swatch" style="background:#FF9800"></span>참기름 167</div>
-            <div id="foods-167" class="badge-list"></div>
-            <div id="reason-167" class="food-reason"></div>
-        </div>
-        <div class="food-card">
-            <div class="food-card-header"><span class="swatch" style="background:#F44336"></span>참기름 178</div>
-            <div id="foods-178" class="badge-list"></div>
-            <div id="reason-178" class="food-reason"></div>
-        </div>
-    </div>
+    
 
     <script>
         const ctx = document.getElementById('radarChart').getContext('2d');
@@ -262,6 +275,14 @@
         function buildData(row, oilCode) {
             const metricsOrder = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
             return metricsOrder.map(metric => getMetricValue(row, oilCode, metric + '. '));
+        }
+
+        function renderTitle(row) {
+            const title = document.getElementById('titleBanner');
+            if (!title) return;
+            const nameKey = Object.keys(row).find(k => k.includes('이름'));
+            const userName = nameKey ? String(row[nameKey]).trim() : '';
+            title.textContent = userName ? `${userName}의 오일 테이스팅 노트` : '오일 테이스팅 노트';
         }
 
         function createChart(datasets) {
@@ -350,25 +371,52 @@
         }
 
         function extractFoodSelections(row, oilCode) {
-            const selections = new Set();
             const baseMatcher = `참기름 ${oilCode}`;
+            const selections = new Set();
 
-            // 1) Consolidated string answer
-            const stringKey = Object.keys(row).find(k => k.includes(baseMatcher) && k.includes('가장 잘 어울린다고') && !k.includes('('));
+            // 1) Boolean category answers in parentheses (우선 사용)
+            let hasBoolean = false;
+            Object.entries(row).forEach(([k, v]) => {
+                if (k.includes(baseMatcher) && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
+                    hasBoolean = true;
+                    const open = k.lastIndexOf('(');
+                    const close = k.lastIndexOf(')');
+                    const fullLabel = open !== -1 && close !== -1 && close > open
+                        ? k.substring(open + 1, close).trim()
+                        : '';
+                    if (!fullLabel) return;
+                    const dashIdx = fullLabel.indexOf(' – ');
+                    if (dashIdx > -1) {
+                        const category = fullLabel.substring(0, dashIdx).trim();
+                        const itemsStr = fullLabel.substring(dashIdx + 3).trim();
+                        const items = itemsStr.split(',').map(s => s.trim()).filter(Boolean);
+                        if (items.length > 0) {
+                            selections.add(`${category} – ${items[0]}`);
+                            for (let i = 1; i < items.length; i += 1) {
+                                selections.add(items[i]);
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (hasBoolean) {
+                return Array.from(selections);
+            }
+
+            // 2) Consolidated string answer (불리언이 없을 때만 사용)
+            const stringKey = Object.keys(row).find(k =>
+                k.includes(baseMatcher) &&
+                k.includes('가장 잘 어울린다고') &&
+                k.includes('무엇인가요?') &&
+                !k.includes('? (')
+            );
             if (stringKey && typeof row[stringKey] === 'string' && row[stringKey].trim().length > 0) {
                 row[stringKey].split(',').forEach(item => {
                     const t = item.trim();
                     if (t) selections.add(t);
                 });
             }
-
-            // 2) Boolean category answers in parentheses
-            Object.entries(row).forEach(([k, v]) => {
-                if (k.includes(baseMatcher) && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
-                    const label = k.substring(k.indexOf('(') + 1, k.lastIndexOf(')')).trim();
-                    if (label) selections.add(label);
-                }
-            });
 
             return Array.from(selections);
         }
@@ -377,6 +425,29 @@
             const reasonKey = Object.keys(row).find(k => k.includes(`선택한 요리들이 참기름 ${oilCode}`));
             const reason = reasonKey ? row[reasonKey] : '';
             return typeof reason === 'string' ? reason.trim() : '';
+        }
+
+        function getFoodFullAnswer(row, oilCode) {
+            const baseMatcher = `참기름 ${oilCode}`;
+            const stringKey = Object.keys(row).find(k =>
+                k.includes(baseMatcher) &&
+                k.includes('가장 잘 어울린다고') &&
+                k.includes('무엇인가요?') &&
+                !k.includes('? (')
+            );
+            if (stringKey && typeof row[stringKey] === 'string') {
+                const s = row[stringKey].trim();
+                if (s) return s;
+            }
+            const selections = extractFoodSelections(row, oilCode);
+            return Array.isArray(selections) && selections.length ? selections.join(', ') : '';
+        }
+
+        function getHeaderCategory(row, oilCode) {
+            const full = getFoodFullAnswer(row, oilCode);
+            if (!full) return '';
+            const idx = full.indexOf(' – ');
+            return idx > -1 ? full.substring(0, idx).trim() : full.trim();
         }
 
         function renderFoods(row) {
@@ -408,33 +479,19 @@
 
         function selectRepresentativeFood(foods) {
             if (!Array.isArray(foods) || foods.length === 0) return '';
-            const tests = [
-                { keys: ['샐러드', '채소'], label: 'salad' },
-                { keys: ['비빔'], label: 'bibimbap' },
-                { keys: ['면', '소바', '국수'], label: 'noodles' },
-                { keys: ['전', '부침'], label: 'pancakes' },
-                { keys: ['해산물', '사시미', '새우', '해조'], label: 'seafood salad' },
-                { keys: ['두부', '식물성 단백질'], label: 'tofu dish' },
-                { keys: ['육류', '스테이크', '불고기', '삼겹살'], label: 'steak marinade' },
-                { keys: ['스프', '국물'], label: 'soup' }
-            ];
-            for (const t of tests) {
-                const hit = foods.find(f => t.keys.some(k => String(f).includes(k)));
-                if (hit) return t.label;
-            }
-            return 'dish';
+            return String(foods[0]);
         }
 
         function renderHeaderLines(row) {
             const h = document.getElementById('headerText');
             if (!h) return;
-            const f138 = selectRepresentativeFood(extractFoodSelections(row, 138)) || 'salad';
-            const f167 = selectRepresentativeFood(extractFoodSelections(row, 167)) || 'bibimbap';
-            const f178 = selectRepresentativeFood(extractFoodSelections(row, 178)) || 'steak marinade';
-            h.innerHTML = `A ${f138} with 138 sesame oil<br>` +
-                          `${f167.charAt(0).toUpperCase() + f167.slice(1)} made with 167 sesame oil<br>` +
-                          `A ${f178} using 178 sesame oil<br>` +
-                          `will be yummy 😋`;
+            const l138 = getHeaderCategory(row, 138);
+            const l167 = getHeaderCategory(row, 167);
+            const l178 = getHeaderCategory(row, 178);
+            h.innerHTML = `<span class="header-pill yellow">참기름 138로 만든 ${l138 || '선택된 음식 없음'}</span><br>` +
+                          `<span class="header-pill orange">참기름 167로 만든 ${l167 || '선택된 음식 없음'}</span><br>` +
+                          `<span class="header-pill red">참기름 178로 만든 ${l178 || '선택된 음식 없음'}</span><br>` +
+                          `<span  class="header-pill">모두 맛있을 거예요😋</span>`
         }
 
         function hasValidDatasets(dsList) {
@@ -501,7 +558,7 @@
                     ];
 
                     createChart(datasets);
-                    renderFoods(row);
+                    renderTitle(row);
                     renderHeaderLines(row);
                     hideLoader();
                     break;
