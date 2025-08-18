@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>참기름 테이스팅 노트 데이터</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box:focus {
+            border-color: #667eea;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        
+        .data-table th {
+            background-color: #667eea;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .data-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .refresh-btn {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #5a6fd8;
+        }
+        
+        .refresh-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>참기름 테이스팅 노트</h1>
+            <p>Google Apps Script API 데이터 시각화</p>
+        </div>
+        
+        <div class="controls">
+            <input type="text" class="search-box" id="searchInput" placeholder="검색어를 입력하세요...">
+            <button class="refresh-btn" id="refreshBtn" onclick="loadData()">새로고침</button>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalResponses">0</div>
+                <div class="stat-label">총 응답 수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="maleCount">0</div>
+                <div class="stat-label">남성 응답자</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="femaleCount">0</div>
+                <div class="stat-label">여성 응답자</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgFinish">0</div>
+                <div class="stat-label">평균 잔향 지속성</div>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>데이터를 불러오는 중...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div class="table-container">
+            <table class="data-table" id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>응답 ID</th>
+                        <th>성별</th>
+                        <th>잔향 지속성</th>
+                        <th>기름 색상</th>
+                        <th>쓴맛</th>
+                        <th>향 강도</th>
+                        <th>풍미 강도</th>
+                        <th>신선함</th>
+                        <th>무게감</th>
+                        <th>제출 시간</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwImLKchWX76Fs0Kvx78a2hyleyLCH6xM6iYBBjpvWFMMrvISkxIsqm-JmGsfrVQPrvrA/exec';
+        let allData = [];
+
+        // 데이터 로드 함수
+        async function loadData() {
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const tableDiv = document.getElementById('dataTable');
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            // UI 상태 설정
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            tableDiv.style.display = 'none';
+            refreshBtn.disabled = true;
+            
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                allData = await response.json();
+                displayData(allData);
+                updateStats(allData);
+                
+                // 성공 시 UI 업데이트
+                loadingDiv.style.display = 'none';
+                tableDiv.style.display = 'table';
+                document.getElementById('stats').style.display = 'grid';
+                
+            } catch (error) {
+                console.error('데이터 로드 중 오류:', error);
+                errorDiv.textContent = `데이터를 불러오는 중 오류가 발생했습니다: ${error.message}`;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            } finally {
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // 데이터 표시 함수
+        function displayData(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item['Submission ID'] || '-'}</td>
+                    <td>${item['성별'] || '-'}</td>
+                    <td>${item['FINISH. 삼킨 뒤 남는 잔향의 지속성은? (1-즉시 사라짐, 5-오래 지속됨)'] || '-'}</td>
+                    <td>${item['COLOR. 기름의 색의 짙은 정도는? (1-매우 밝음, 5-매우 짙음)'] || '-'}</td>
+                    <td>${item['BITTERNESS. 쓴맛이 얼마나 느껴지나요? (1-전혀 없음, 5-매우 강함)'] || '-'}</td>
+                    <td>${item['AROMA. 오일 참기름 138의 향의 강도는? (1-약함, 5-강함)'] || '-'}</td>
+                    <td>${item['TASTE. 오일 참기름 138의 풍미의 강도는? (1-약함, 5-강함)'] || '-'}</td>
+                    <td>${item['FRESHNESS. 신선함 vs. 산패(쿰쿰함)는? (1-매우 신선, 5-매우 불쾌한 산패)'] || '-'}</td>
+                    <td>${item['BODY. 기름이 입 안에서 느껴주는 \'무게감\'이나 \'묵직함\'의 정도를 뜻해요.'] || '-'}</td>
+                    <td>${formatDate(item['Submitted at'])}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 통계 업데이트 함수
+        function updateStats(data) {
+            const totalResponses = data.length;
+            const maleCount = data.filter(item => item['성별'] === '남자').length;
+            const femaleCount = data.filter(item => item['성별'] === '여자').length;
+            
+            const finishValues = data
+                .map(item => item['FINISH. 삼킨 뒤 남는 잔향의 지속성은? (1-즉시 사라짐, 5-오래 지속됨)'])
+                .filter(value => value !== '' && value !== null && !isNaN(value));
+            
+            const avgFinish = finishValues.length > 0 
+                ? (finishValues.reduce((sum, val) => sum + Number(val), 0) / finishValues.length).toFixed(1)
+                : '0';
+            
+            document.getElementById('totalResponses').textContent = totalResponses;
+            document.getElementById('maleCount').textContent = maleCount;
+            document.getElementById('femaleCount').textContent = femaleCount;
+            document.getElementById('avgFinish').textContent = avgFinish;
+        }
+
+        // 날짜 포맷 함수
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        // 검색 기능
+        function filterData(searchTerm) {
+            if (!searchTerm.trim()) {
+                displayData(allData);
+                return;
+            }
+            
+            const filteredData = allData.filter(item => {
+                return Object.values(item).some(value => 
+                    String(value).toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            });
+            
+            displayData(filteredData);
+        }
+
+        // 이벤트 리스너 설정
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            filterData(e.target.value);
+        });
+
+        // 페이지 로드 시 데이터 불러오기
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>

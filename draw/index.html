@@ -329,6 +329,7 @@
     <button id="redoBtn" title="앞으로 가기" aria-label="Redo"><i data-lucide="redo-2"></i></button>
     <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
     <button id="saveBtn" title="저장" aria-label="Save"><i data-lucide="save"></i></button>
+    <button id="chartsBtn" title="차트" aria-label="Charts"><i data-lucide="bar-chart-3"></i></button>
   </div>
   <!-- 커스텀 컬러 선택 모달 -->
   <div id="colorModal" role="dialog" aria-modal="true" aria-labelledby="colorTitle">
@@ -388,6 +389,20 @@
   </svg>
   <canvas id="c"></canvas>
 
+  <!-- 데이터 차트 패널 -->
+  <section id="chartsPanel" aria-label="데이터 차트" style="display:none;">
+    <div>
+      <div class="charts-header">
+        <strong>시음 데이터 차트</strong>
+        <button id="chartsClose" title="닫기" aria-label="닫기">×</button>
+      </div>
+      <canvas id="surveyChart"></canvas>
+      <div class="charts-footer">
+        <a href="https://script.google.com/macros/s/AKfycbznu9-K4BJCHdv4klUg3vpa4KrhlBKuq9ppZ4Q139sY_UvfwWgBcVn2iUZWHeONM61nyQ/exec?g=821067202003" target="_blank" rel="noopener">원본 데이터</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ① CDN(EcmaScript Module)에서 라이브러리 로드  -->
   <script type="module">
     // iOS Safari 더블탭 확대 방지: 빠른 연속 탭을 소모
@@ -401,6 +416,7 @@
     }, { passive: false });
     import { getStroke } from 'https://cdn.jsdelivr.net/npm/perfect-freehand@1.2.2/+esm';
     import { createIcons, icons } from 'https://cdn.jsdelivr.net/npm/lucide@0.454.0/+esm';
+    import Chart from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js';
 
     /* ===== 캔버스 및 상태 변수 준비 ===== */
     const canvas  = document.getElementById('c');
@@ -414,6 +430,9 @@
     const redoBtn  = document.getElementById('redoBtn');
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn  = document.getElementById('saveBtn');
+    const chartsBtn = document.getElementById('chartsBtn');
+    const chartsPanel = document.getElementById('chartsPanel');
+    const chartsClose = document.getElementById('chartsClose');
 
     resize();
     // iOS Safari에서 주소창/툴바 변화로 생기는 뷰포트 왜곡을 줄이기 위한 보정
@@ -905,6 +924,72 @@
       };
       img.src = url;
     });
+
+    // ===== 데이터 차트 =====
+    chartsBtn.addEventListener('click', async () => {
+      await renderSurveyChart();
+      chartsPanel.style.display = 'flex';
+    });
+    chartsClose.addEventListener('click', () => chartsPanel.style.display = 'none');
+    chartsPanel.addEventListener('click', (e) => { if (e.target === chartsPanel) chartsPanel.style.display = 'none'; });
+
+    async function fetchSurvey() {
+      const url = 'https://script.google.com/macros/s/AKfycbznu9-K4BJCHdv4klUg3vpa4KrhlBKuq9ppZ4Q139sY_UvfwWgBcVn2iUZWHeONM61nyQ/exec?g=821067202003';
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
+
+    let surveyChartInstance = null;
+    async function renderSurveyChart() {
+      const data = await fetchSurvey();
+      if (!data.length) return;
+      const o = data[0];
+      const labels = ['AROMA','BODY','BITTERNESS','FINISH','FRESHNESS','COLOR'];
+      const ds = (title, keys, color) => ({
+        label: title,
+        data: keys.map((k) => Number(o[k] ?? 0)),
+        fill: true,
+        backgroundColor: Chart.helpers.color(color).alpha(0.2),
+        borderColor: color,
+        pointBackgroundColor: color,
+      });
+      const d138 = ds('참기름 138(좌측)', [
+        'AROMA. 참기름 138(좌측) 향의 강도는 어떤가요?',
+        'BODY. 참기름 138(좌측)의 풍미의 강도는 어떤가요?',
+        'BITTERNESS. 참기름 138(좌측)의 쓴맛의 정도는 어떤가요?',
+        'FINISH. 참기름 138(좌측)을 삼킨 뒤 남는 잔향의 지속성은 어떤가요?',
+        'FRESHNESS. 참기름 138(좌측)이 얼마나 신선하게 느껴지나요?',
+        'COLOR. 참기름 138(좌측) 색의 짙은 정도는 어떤가요?'
+      ], '#3b82f6');
+      const d167 = ds('참기름 167(중앙)', [
+        'AROMA. 참기름 167(중앙) 향의 강도는 어떤가요?',
+        'BODY. 참기름 167(중앙)의 풍미의 강도는 어떤가요?',
+        'BITTERNESS. 참기름 167(좌측)의 쓴맛이 얼마나 느껴지나요?',
+        'FINISH. 참기름 167(중앙)을 삼킨 뒤 남는 잔향의 지속성은 어떤가요?',
+        'FRESHNESS. 참기름 167(중앙)이 얼마나 신선하게 느껴지나요?',
+        'COLOR. 참기름 167(중앙) 색의 짙은 정도는 어떤가요?'
+      ], '#22c55e');
+      const d178 = ds('참기름 178(우측)', [
+        'AROMA. 참기름 178(우측) 향의 강도는 어떤가요?',
+        'BODY. 참기름 178(우측)의 풍미의 강도는 어떤가요?',
+        'BITTERNESS. 참기름 178(우측)의 쓴맛이 얼마나 느껴지나요?',
+        'FINISH. 참기름 178(우측)을 삼킨 뒤 남는 잔향의 지속성은 어떤가요?',
+        'FRESHNESS. 참기름 178(우측)이 얼마나 신선하게 느껴지나요?',
+        'COLOR. 참기름 178(우측) 색의 짙은 정도는 어떤가요?'
+      ], '#ef4444');
+
+      const ctx = document.getElementById('surveyChart');
+      if (surveyChartInstance) surveyChartInstance.destroy();
+      surveyChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: { labels, datasets: [d138, d167, d178] },
+        options: {
+          scales: { r: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } } },
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
 
     /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
     canvas.addEventListener('pointerdown', (e) => {
