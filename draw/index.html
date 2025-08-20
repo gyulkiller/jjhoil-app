@@ -399,6 +399,38 @@
       .file-actions button { background: rgba(255,255,255,0.08); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
       .file-info { color: #c9c9ce; }
     }
+    /* ===== 튜토리얼 오버레이 ===== */
+    #tourOverlay { position: fixed; inset: 0; display: none; z-index: 10000; }
+    #tourOverlay.open { display: block; }
+    #tourDimmer { position: absolute; inset: 0; background: transparent; }
+    #tourHighlight {
+      position: fixed;
+      border-radius: 16px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.28);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    #tourTooltip {
+      position: fixed;
+      max-width: 320px;
+      background: rgba(255,255,255,0.96);
+      color: #111;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
+    }
+    .tour-text { font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+    .tour-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .tour-actions button { cursor: pointer; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.85); }
+    .tour-actions button.primary { background: #0a84ff; color: #fff; border-color: rgba(0,0,0,0); }
+    @media (prefers-color-scheme: dark) {
+      #tourTooltip { background: rgba(20,20,24,0.96); color: #f5f5f7; border-color: rgba(255,255,255,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+      .tour-actions button { background: rgba(255,255,255,0.08); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
+      .tour-actions button.primary { background: #0a84ff; color: #fff; border-color: transparent; }
+    }
   </style>
 </head>
 <body>
@@ -433,6 +465,18 @@
     <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
     <button id="saveBtn" title="저장" aria-label="Save"><i data-lucide="save"></i></button>
     <a id="galleryBtn" title="갤러리로 이동" aria-label="Go to gallery" href="https://app.jjhoil.com/draw/gallery/" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.55);"><i data-lucide="image"></i></a>
+  </div>
+  <!-- 튜토리얼 오버레이 -->
+  <div id="tourOverlay" aria-hidden="true">
+    <div id="tourDimmer"></div>
+    <div id="tourHighlight" aria-hidden="true"></div>
+    <div id="tourTooltip" role="dialog" aria-modal="false">
+      <div class="tour-text" id="tourText"></div>
+      <div class="tour-actions">
+        <button id="tourSkipBtn" type="button">건너뛰기</button>
+        <button id="tourNextBtn" type="button" class="primary">다음</button>
+      </div>
+    </div>
   </div>
   <!-- 이메일/전화 입력 모달 -->
   <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
@@ -624,6 +668,14 @@
     const redoBtn  = document.getElementById('redoBtn');
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn  = document.getElementById('saveBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
+    // 튜토리얼 요소
+    const tourOverlay = document.getElementById('tourOverlay');
+    const tourHighlight = document.getElementById('tourHighlight');
+    const tourTooltip = document.getElementById('tourTooltip');
+    const tourTextEl = document.getElementById('tourText');
+    const tourNextBtn = document.getElementById('tourNextBtn');
+    const tourSkipBtn = document.getElementById('tourSkipBtn');
     // 입력/업로드 모달 요소
     const infoModal = document.getElementById('infoModal');
     const infoEmail = document.getElementById('infoEmail');
@@ -751,6 +803,74 @@
     }
     // 초기 레이아웃 계산 수행
     resize();
+
+    /* ===== 툴바 튜토리얼 ===== */
+    const TOUR_KEY = 'onlyu_draw_tour_v1_done';
+    const tourSteps = [
+      { el: () => brushBtn, text: '붓을 선택해 그리기를 시작하세요.' },
+      { el: () => eraserBtn, text: '지우개로 잘못 그린 부분을 지울 수 있어요.' },
+      { el: () => paletteEl.querySelector('.swatch.rainbow') || paletteEl, text: '색상 선택이 가능합니다.' },
+      { el: () => undoBtn, text: '되돌리기' },
+      { el: () => redoBtn, text: '다시하기' },
+      { el: () => clearBtn, text: '모두 지우기' },
+      { el: () => galleryBtn, text: '영감이 필요하신가요? 다른 참가자의 작품을 볼 수 있어요.' },
+      { el: () => saveBtn, text: '저장 버튼을 눌러 작품을 업로드하세요.' }
+    ];
+    let tourIndex = 0;
+    function positionTourFor(el) {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const pad = 8;
+      const x = Math.round(r.left - pad);
+      const y = Math.round(r.top - pad);
+      const w = Math.round(r.width + pad * 2);
+      const h = Math.round(r.height + pad * 2);
+      tourHighlight.style.left = x + 'px';
+      tourHighlight.style.top = y + 'px';
+      tourHighlight.style.width = w + 'px';
+      tourHighlight.style.height = h + 'px';
+      // 툴팁 위치: 기본은 하단에, 화면 밖이면 위쪽
+      const margin = 10;
+      const tooltipRect = tourTooltip.getBoundingClientRect();
+      let ttX = Math.round(x + (w - tooltipRect.width) / 2);
+      ttX = Math.max(8, Math.min(ttX, window.innerWidth - tooltipRect.width - 8));
+      let ttY = y + h + margin;
+      if (ttY + tooltipRect.height > window.innerHeight - 8) {
+        ttY = y - tooltipRect.height - margin;
+      }
+      tourTooltip.style.left = ttX + 'px';
+      tourTooltip.style.top = Math.round(ttY) + 'px';
+    }
+    function openTour() {
+      tourIndex = 0;
+      tourOverlay.classList.add('open');
+      document.body.style.touchAction = 'none';
+      document.body.style.overflow = 'hidden';
+      const step = tourSteps[tourIndex];
+      tourTextEl.textContent = step.text;
+      // 먼저 보이게 해서 크기 계산 후 위치
+      requestAnimationFrame(() => positionTourFor(step.el()));
+    }
+    function closeTour() {
+      tourOverlay.classList.remove('open');
+      document.body.style.touchAction = '';
+      document.body.style.overflow = '';
+      try { localStorage.setItem(TOUR_KEY, '1'); } catch (_) {}
+    }
+    function nextTour() {
+      tourIndex += 1;
+      if (tourIndex >= tourSteps.length) { closeTour(); return; }
+      const step = tourSteps[tourIndex];
+      tourTextEl.textContent = step.text;
+      positionTourFor(step.el());
+    }
+    tourNextBtn.addEventListener('click', nextTour);
+    tourSkipBtn.addEventListener('click', closeTour);
+    window.addEventListener('resize', () => {
+      if (!tourOverlay.classList.contains('open')) return;
+      const step = tourSteps[tourIndex];
+      positionTourFor(step.el());
+    });
 
     /* ===== UI 이벤트 ===== */
     // 사이즈 팝오버
@@ -1156,6 +1276,8 @@
       if (!ok) return;
       strokes.length = 0;
       undoneStrokes.length = 0;
+      // 확대/이동 상태 초기화
+      setView(1, 0, 0);
       render();
       scheduleSave();
     });
@@ -1407,6 +1529,7 @@
     // 시작 화면 동작
     startOnlineBtn?.addEventListener('click', () => {
       startScreen?.parentNode?.removeChild(startScreen);
+      setTimeout(() => openTour(), 50);
     });
     startUploadBtn?.addEventListener('click', () => {
       startScreen?.parentNode?.removeChild(startScreen);
