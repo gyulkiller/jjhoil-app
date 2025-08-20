@@ -378,7 +378,7 @@
     /* 시작 선택 화면 */
     #startScreen { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.8)); backdrop-filter: blur(4px); }
     #startScreen .card { width: min(520px, 92vw); border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.9); box-shadow: 0 12px 36px rgba(0,0,0,0.18); padding: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
-    #startScreen .title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: #FFF; }
+    #startScreen .title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: #000; }
     #startScreen .desc { font-size: 14px; color: #444; margin-bottom: 12px; }
     #startScreen .actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
     #startScreen .actions button { height: 48px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; font-size: 15px; }
@@ -386,6 +386,7 @@
     @media (prefers-color-scheme: dark) {
       #startScreen { background: linear-gradient(180deg, rgba(20,20,24,0.78), rgba(20,20,24,0.78)); }
       #startScreen .card { background: rgba(20,20,24,0.92); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+      #startScreen .title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: #FFF; }
       #startScreen .desc { color: #c9c9ce; }
       #startScreen .actions button { background: rgba(255,255,255,0.06); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
       #startScreen .actions button.primary { background: rgba(10,132,255,0.9); color: #fff; }
