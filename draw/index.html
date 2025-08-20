@@ -1156,45 +1156,88 @@
       exportCanvas.height = canvas.height;
       const ectx = exportCanvas.getContext('2d');
 
-      const bgEl = document.getElementById('bgSvg');
-      const isDesktop = window.innerWidth >= 769;
-      const marginX = isDesktop ? 140 : 40;
-      const marginY = isDesktop ? 80 : 24;
-      const boxW = Math.max(200, exportCanvas.width - marginX * 2);
-      const boxH = Math.max(200, exportCanvas.height - marginY * 2);
+      // 1) 스트로크를 별도의 오프스크린 캔버스에 먼저 렌더링(배경 보호)
+      const strokesCanvas = document.createElement('canvas');
+      strokesCanvas.width = exportCanvas.width;
+      strokesCanvas.height = exportCanvas.height;
+      const sctx = strokesCanvas.getContext('2d');
+      strokes.forEach(s => drawStrokeToContext(sctx, s.points, s.color, s.size, s.isEraser));
 
-      // 배경 흰색 채우기
+      // 2) 배경을 '기본 배치(변환 적용 전)' 기준으로 동일하게 배치하여
+      //    현재 줌/이동 상태와 무관하게 스트로크와 정합되도록 함
+      const bgEl = document.getElementById('bgSvg');
+      const vp = getViewportSize();
+      const isDesktop = vp.width >= 769;
+      const marginX = isDesktop ? 140 : 40;
+      const marginTop = isDesktop ? 80 : 24;
+      const toolbarRect = toolbarEl?.getBoundingClientRect?.();
+      const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
+      const extraBottom = isDesktop ? 140 : 100;
+      const bottomGap = toolbarHeight + extraBottom;
+      const boxW = Math.max(200, exportCanvas.width - marginX * 2);
+      const boxH = Math.max(200, exportCanvas.height - marginTop - bottomGap);
+
+      // 3) 배경 흰색 채우기
       ectx.save();
       ectx.fillStyle = '#ffffff';
       ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
       ectx.restore();
 
-      // SVG를 이미지로 변환해서 contain으로 그림
-      const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(bgEl);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
+      // 4) 배경 SVG를 Path2D로 직접 그리기(가장 호환성이 높고 누락 위험이 없음)
       try {
-        const img = await new Promise((resolve, reject) => {
-          const i = new Image();
-          i.onload = () => resolve(i);
-          i.onerror = reject;
-          i.src = url;
-        });
-        const imgW = img.naturalWidth;
-        const imgH = img.naturalHeight;
-        const scale = Math.min(boxW / imgW, boxH / imgH);
-        const drawW = imgW * scale;
-        const drawH = imgH * scale;
+        const vbParts = (bgEl?.getAttribute('viewBox') || '0 0 550 550').trim().split(/\s+/).map(Number);
+        const vbW = vbParts[2] || 550;
+        const vbH = vbParts[3] || 550;
+        const scale = Math.min(boxW / vbW, boxH / vbH);
+        const drawW = vbW * scale;
+        const drawH = vbH * scale;
         const dx = Math.floor(marginX + (boxW - drawW) / 2);
-        const dy = Math.floor(marginY + (boxH - drawH) / 2);
-        ectx.drawImage(img, dx, dy, drawW, drawH);
-      } finally {
-        URL.revokeObjectURL(url);
+        const dy = Math.floor(marginTop + (boxH - drawH) / 2);
+        const pathEls = Array.from(document.querySelectorAll('#bgSvg path'));
+        ectx.save();
+        ectx.translate(dx, dy);
+        ectx.scale(scale, scale);
+        for (const p of pathEls) {
+          const d = p.getAttribute('d');
+          if (!d) continue;
+          const fill = p.getAttribute('fill') || '#000';
+          const shape = new Path2D(d);
+          ectx.fillStyle = fill;
+          ectx.fill(shape);
+        }
+        ectx.restore();
+      } catch (err) {
+        // Path2D가 실패할 경우에만 이미지 변환으로 폴백
+        const serializer = new XMLSerializer();
+        let svgString = serializer.serializeToString(bgEl);
+        if (!/xmlns=/.test(svgString)) {
+          svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        try {
+          const img = await new Promise((resolve, reject) => {
+            const i = new Image();
+            i.crossOrigin = 'anonymous';
+            i.onload = () => resolve(i);
+            i.onerror = reject;
+            i.src = url;
+          });
+          const imgW = img.naturalWidth;
+          const imgH = img.naturalHeight;
+          const scale = Math.min(boxW / imgW, boxH / imgH);
+          const drawW = imgW * scale;
+          const drawH = imgH * scale;
+          const dx = Math.floor(marginX + (boxW - drawW) / 2);
+          const dy = Math.floor(marginTop + (boxH - drawH) / 2);
+          ectx.drawImage(img, dx, dy, drawW, drawH);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
       }
 
-      // 사용자 드로잉 합성: 저장은 뷰 변환 없이 원본 좌표계로 다시 그림
-      strokes.forEach(s => drawStrokeToContext(ectx, s.points, s.color, s.size, s.isEraser));
+      // 5) 스트로크 레이어 합성(배경 위에)
+      ectx.drawImage(strokesCanvas, 0, 0);
 
       const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('이미지 생성 실패');
