@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Only U Gallery — Draws</title>
+    <meta name="description" content="최근 업로드된 드로잉을 애플 홈페이지 같은 미니멀 디자인으로 감상하세요." />
+
+    <link rel="preconnect" href="https://tally-to-d1.gyulkiller.workers.dev" crossorigin />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #000000;
+        --muted: #6e6e73;
+        --card: #f5f5f7;
+        --border: #e5e5ea;
+        --accent: #0a84ff;
+        --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --fg: #f5f5f7;
+          --muted: #a1a1a6;
+          --card: #1c1c1e;
+          --border: #2c2c2e;
+          --accent: #0a84ff;
+          --shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        letter-spacing: -0.02em;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      img { display: block; max-width: 100%; height: auto; }
+
+      /* Top Nav - glassy like Apple */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 20px;
+        backdrop-filter: saturate(180%) blur(20px);
+        background: color-mix(in srgb, var(--bg) 80%, transparent);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
+      .nav-actions { display: flex; align-items: center; gap: 10px; }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        color: var(--fg);
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 200ms ease, background 200ms ease, border-color 200ms ease;
+      }
+      .btn:hover { transform: translateY(-1px); background: var(--card); }
+      .btn:active { transform: translateY(0); }
+
+      /* Hero */
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        place-items: center;
+        padding: 80px 20px 40px;
+        text-align: center;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+      }
+      .hero h1 {
+        margin: 16px 0 12px;
+        font-size: clamp(36px, 6vw, 72px);
+        font-weight: 800;
+        line-height: 1.06;
+        letter-spacing: -0.04em;
+        background: linear-gradient(90deg, var(--fg), color-mix(in srgb, var(--fg) 60%, var(--muted)));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero p { margin: 0; color: var(--muted); font-size: clamp(14px, 2.2vw, 18px); }
+      .hero-cta { margin-top: 18px; display: inline-flex; gap: 10px; }
+      .link {
+        color: var(--accent);
+        font-weight: 600;
+        border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      }
+
+      /* Section heading */
+      .section {
+        padding: 24px 20px 10px;
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+      .section h2 { font-size: 20px; margin: 0 0 10px; font-weight: 700; }
+      .section .muted { color: var(--muted); font-size: 14px; }
+
+      /* Grid */
+      .grid-wrap { padding: 10px 20px 80px; }
+      .grid {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 28px;
+      }
+      .card {
+        position: relative;
+        border-radius: 0;
+        overflow: hidden;
+        background: transparent;
+        border: 0;
+        box-shadow: var(--shadow);
+        transform: translateY(8px);
+        opacity: 0;
+        transition: transform 600ms cubic-bezier(.2,.8,.2,1), opacity 600ms ease;
+      }
+      .card.visible { transform: translateY(0); opacity: 1; }
+      .thumb { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center; background: var(--card); cursor: zoom-in; border-radius: 0; }
+      .card-footer {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        border-top: 0;
+        background: transparent;
+      }
+      /* removed open button for museum-like focus */
+
+      /* Skeleton */
+      .skeleton {
+        position: relative;
+        overflow: hidden;
+        background: var(--card);
+        border: 0;
+        border-radius: 0;
+        aspect-ratio: 1 / 1;
+      }
+      .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg,
+          transparent,
+          color-mix(in srgb, var(--fg) 6%, transparent),
+          transparent
+        );
+        transform: translateX(-100%);
+        animation: shimmer 1.2s infinite;
+      }
+      @keyframes shimmer { to { transform: translateX(100%); } }
+
+      /* Footer */
+      footer {
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+        padding: 24px 20px 60px;
+        text-align: center;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+      }
+
+      /* Utilities */
+      .hidden { display: none !important; }
+      .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
+      }
+
+      /* Lightbox */
+      body.no-scroll { overflow: hidden; }
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 40px 20px;
+        background: rgba(0,0,0,0.9);
+      }
+      .lightbox img {
+        max-width: min(90vw, 1600px);
+        max-height: 85vh;
+        border-radius: 0;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      }
+      .lightbox .close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav" role="banner">
+      <div class="brand">Only U • Gallery</div>
+      <div class="nav-actions">
+        <a class="btn" href="../index.html">드로우로 돌아가기</a>
+        <button id="refreshBtn" class="btn" type="button">새로고침</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <span class="hero-badge" aria-hidden="true">Today’s Draws</span>
+        <h1 id="hero-title">Gallery</h1>
+      </section>
+
+      <section id="gallery" class="section" aria-labelledby="gallery-title">
+
+      </section>
+
+      <div class="grid-wrap">
+        <div class="grid" id="grid" role="list">
+          <!-- Skeletons (initial) -->
+        </div>
+      </div>
+      <div class="muted" id="countLabel">불러오는 중…</div>
+    </main>
+
+    <footer>
+      데이터 제공: <a class="link" href="https://tally-to-d1.gyulkiller.workers.dev/draws" target="_blank" rel="noopener">tally draws API</a>
+    </footer>
+
+    <script>
+      const API_URL = 'https://tally-to-d1.gyulkiller.workers.dev/draws';
+
+      const gridEl = document.getElementById('grid');
+      const countLabel = document.getElementById('countLabel');
+      const refreshBtn = document.getElementById('refreshBtn');
+
+      function formatDateTime(isoLike) {
+        try {
+          const dt = new Date(isoLike.replace(' ', 'T') + 'Z');
+          return new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          }).format(dt);
+        } catch {
+          return isoLike;
+        }
+      }
+
+      function createSkeletons(count = 8) {
+        gridEl.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          const holder = document.createElement('div');
+          holder.className = 'card';
+          holder.innerHTML = `
+            <div class="skeleton" aria-hidden="true"></div>
+            <div class="card-footer">
+              <span>로딩 중…</span>
+              <span></span>
+            </div>
+          `;
+          gridEl.appendChild(holder);
+          // Make skeletons visible instantly to occupy space
+          requestAnimationFrame(() => holder.classList.add('visible'));
+        }
+      }
+
+      function renderItems(items) {
+        gridEl.innerHTML = '';
+        if (!items || items.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'section muted';
+          empty.textContent = '표시할 이미지가 없습니다.';
+          gridEl.appendChild(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        items.forEach((it, idx) => {
+          const order = items.length - idx;
+          const fig = document.createElement('figure');
+          fig.className = 'card';
+          fig.setAttribute('role', 'listitem');
+
+          const img = document.createElement('img');
+          img.className = 'thumb';
+          img.src = it.url;
+          img.alt = `그림 #${order}`;
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          if (idx < 4) {
+            img.setAttribute('fetchpriority', 'high');
+          }
+
+          // open lightbox on click
+          img.addEventListener('click', () => openLightbox(it.url, `#${order}`));
+
+          const footer = document.createElement('figcaption');
+          footer.className = 'card-footer';
+          footer.innerHTML = `
+            <span>#${order}</span>
+          `;
+
+          fig.appendChild(img);
+          fig.appendChild(footer);
+
+          fragment.appendChild(fig);
+        });
+
+        gridEl.appendChild(fragment);
+
+        // Reveal on view
+        const io = new IntersectionObserver((entries, obs) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('visible');
+              obs.unobserve(e.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+
+        gridEl.querySelectorAll('.card').forEach(el => io.observe(el));
+      }
+
+      async function fetchItems() {
+        countLabel.textContent = '불러오는 중…';
+        createSkeletons();
+        try {
+          const res = await fetch(API_URL, { cache: 'no-store' });
+          if (!res.ok) throw new Error('네트워크 오류');
+          const data = await res.json();
+          const items = Array.isArray(data?.items) ? data.items : [];
+          countLabel.textContent = `${items.length}개 결과`;
+          renderItems(items);
+        } catch (err) {
+          console.error(err);
+          countLabel.textContent = '불러오기 실패';
+          gridEl.innerHTML = '';
+          const errBox = document.createElement('div');
+          errBox.className = 'section';
+          errBox.innerHTML = '<p class="muted">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>';
+          gridEl.appendChild(errBox);
+        }
+      }
+
+      refreshBtn.addEventListener('click', () => fetchItems());
+
+      // Lightbox helpers
+      function openLightbox(src, label) {
+        const wrap = document.createElement('div');
+        wrap.className = 'lightbox';
+        wrap.setAttribute('role', 'dialog');
+        wrap.setAttribute('aria-modal', 'true');
+        wrap.innerHTML = `
+          <button class="close" aria-label="닫기">닫기</button>
+          <img src="${src}" alt="${label}" />
+        `;
+        const close = () => {
+          document.body.classList.remove('no-scroll');
+          wrap.remove();
+          window.removeEventListener('keydown', onKey);
+        };
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+        wrap.querySelector('.close').addEventListener('click', close);
+        window.addEventListener('keydown', onKey);
+        document.body.classList.add('no-scroll');
+        document.body.appendChild(wrap);
+      }
+
+      // Initial load
+      fetchItems();
+    </script>
+  </body>
+  </html>
+
+
