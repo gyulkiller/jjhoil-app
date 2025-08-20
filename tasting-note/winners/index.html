@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OnlyU Tasting Note - 당첨 현황</title>
+    <meta name="theme-color" content="#0b0b0b" />
+    <style>
+      :root {
+        --background: oklch(1.0000 0 0);
+        --foreground: oklch(0.2686 0 0);
+        --card: oklch(1.0000 0 0);
+        --card-foreground: oklch(0.2686 0 0);
+        --popover: oklch(1.0000 0 0);
+        --popover-foreground: oklch(0.2686 0 0);
+        --primary: oklch(0.7686 0.1647 70.0804);
+        --primary-foreground: oklch(0 0 0);
+        --secondary: oklch(0.9670 0.0029 264.5419);
+        --secondary-foreground: oklch(0.4461 0.0263 256.8018);
+        --muted: oklch(0.9846 0.0017 247.8389);
+        --muted-foreground: oklch(0.5510 0.0234 264.3637);
+        --accent: oklch(0.9869 0.0214 95.2774);
+        --accent-foreground: oklch(0.4732 0.1247 46.2007);
+        --destructive: oklch(0.6368 0.2078 25.3313);
+        --destructive-foreground: oklch(1.0000 0 0);
+        --border: oklch(24.776% 0.00003 271.152);
+        --input: oklch(0.9276 0.0058 264.5313);
+        --ring: oklch(0.7686 0.1647 70.0804);
+        --chart-1: oklch(0.7686 0.1647 70.0804);
+        --chart-2: oklch(0.6658 0.1574 58.3183);
+        --chart-3: oklch(0.5553 0.1455 48.9975);
+        --chart-4: oklch(0.4732 0.1247 46.2007);
+        --chart-5: oklch(0.4137 0.1054 45.9038);
+        --sidebar: oklch(0.9846 0.0017 247.8389);
+        --sidebar-foreground: oklch(0.2686 0 0);
+        --sidebar-primary: oklch(0.7686 0.1647 70.0804);
+        --sidebar-primary-foreground: oklch(1.0000 0 0);
+        --sidebar-accent: oklch(0.9869 0.0214 95.2774);
+        --sidebar-accent-foreground: oklch(0.4732 0.1247 46.2007);
+        --sidebar-border: oklch(0.9276 0.0058 264.5313);
+        --sidebar-ring: oklch(0.7686 0.1647 70.0804);
+        --font-sans: Inter, sans-serif;
+        --font-serif: Source Serif 4, serif;
+        --font-mono: JetBrains Mono, monospace;
+        --radius: 0.375rem;
+        --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+        --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+        --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+        --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+        --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 2px 4px -2px hsl(0 0% 0% / 0.10);
+        --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
+        --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
+        --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+      }
+      .dark {
+        --background: oklch(0.2046 0 0);
+        --foreground: oklch(0.9219 0 0);
+        --card: oklch(0.2686 0 0);
+        --card-foreground: oklch(0.9219 0 0);
+        --popover: oklch(0.2686 0 0);
+        --popover-foreground: oklch(0.9219 0 0);
+        --primary: oklch(0.7686 0.1647 70.0804);
+        --primary-foreground: oklch(0 0 0);
+        --secondary: oklch(0.2686 0 0);
+        --secondary-foreground: oklch(0.9219 0 0);
+        --muted: oklch(0.2686 0 0);
+        --muted-foreground: oklch(0.7155 0 0);
+        --accent: oklch(0.4732 0.1247 46.2007);
+        --accent-foreground: oklch(0.9243 0.1151 95.7459);
+        --destructive: oklch(0.6368 0.2078 25.3313);
+        --destructive-foreground: oklch(1.0000 0 0);
+        --border: oklch(0.3715 0 0);
+        --input: oklch(0.3715 0 0);
+        --ring: oklch(0.7686 0.1647 70.0804);
+        --chart-1: oklch(0.8369 0.1644 84.4286);
+        --chart-2: oklch(0.6658 0.1574 58.3183);
+        --chart-3: oklch(0.4732 0.1247 46.2007);
+        --chart-4: oklch(0.5553 0.1455 48.9975);
+        --chart-5: oklch(0.4732 0.1247 46.2007);
+        --sidebar: oklch(0.1684 0 0);
+        --sidebar-foreground: oklch(0.9219 0 0);
+        --sidebar-primary: oklch(0.7686 0.1647 70.0804);
+        --sidebar-primary-foreground: oklch(1.0000 0 0);
+        --sidebar-accent: oklch(0.4732 0.1247 46.2007);
+        --sidebar-accent-foreground: oklch(0.9243 0.1151 95.7459);
+        --sidebar-border: oklch(0.3715 0 0);
+        --sidebar-ring: oklch(0.7686 0.1647 70.0804);
+      }
+      /* legacy variable mapping for this page */
+      :root {
+        --bg: var(--background);
+        --text: var(--foreground);
+        --panel: var(--card);
+        --panel-2: var(--card);
+        --muted: var(--muted-foreground);
+        --accent: var(--accent);
+        --success: var(--primary);
+        --danger: var(--destructive);
+        --border: var(--border);
+        --ring: var(--ring);
+      }
+
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        color: var(--text);
+        background: var(--bg);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px clamp(16px, 3vw, 32px) 56px;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+        text-align: center;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(28px, 5vw, 42px);
+        letter-spacing: -0.02em;
+        font-weight: 700;
+      }
+
+      .brand p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 12px;
+        align-self: center;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset, 0 10px 30px rgba(0,0,0,0.35);
+      }
+      .pill { background: var(--glass); border: 1px solid var(--border); box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 10px 30px rgba(0,0,0,0.35); }
+      .hour-block { padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04)); box-shadow: 0 6px 18px rgba(0,0,0,0.28); margin-bottom: 12px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+      .hour-block:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(0,0,0,0.34); }
+      .hour-block.latest { box-shadow: 0 8px 24px rgba(0,0,0,0.35); border-color: rgba(158,197,255,0.45); }
+      .hour-title { font-weight: 600; margin-bottom: 10px; letter-spacing: -0.01em; font-size: clamp(16px, 2vw, 18px); color: var(--text); }
+
+      /* Oil rows styled blocks */
+      .oil-row {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82));
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px 10px 26px;
+        margin: 10px 0;
+      }
+      .oil-row::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        bottom: 10px;
+        width: 8px;
+        border-radius: 3px;
+        background: var(--border);
+      }
+      .oil-row.oil-a::before { background: #f1c40f; }
+      .oil-row.oil-b::before { background: #f6d365; }
+      .oil-row.oil-c::before { background: #ff5a5f; }
+      .oil-name { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+      .oil-desc { color: var(--muted); line-height: 1.4; white-space: pre-line; }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        justify-items: center;
+        justify-content: center;
+      }
+
+      @media (min-width: 900px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+      .card {
+        width: 100%;
+        max-width: 760px;
+      }
+
+      /* ensure inner blocks also span the centered card width */
+      .group { width: 100%; }
+      .hour-block { width: 100%; }
+
+      .card h2 {
+        margin: 0 0 8px 0;
+        font-size: clamp(18px, 2.2vw, 20px);
+        letter-spacing: -0.01em;
+      }
+
+      .sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+
+      /* legacy list/grid remnants removed */
+      .group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-size: 14px;
+        padding: 8px 0 2px;
+      }
+
+      /* unused oil status styles removed */
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .refresh {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .refresh button {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        color: var(--text);
+        border-radius: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: transform .1s ease, border-color .2s ease;
+      }
+      .refresh button { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease; }
+      .refresh button:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
+      .refresh .hint { color: var(--muted); font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>Korean Sesame Oil Winners List</h1>
+        </div>
+        <div class="meta">
+          <span class="pill" id="next-draw-pill">다음 추첨까지 —</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="card">
+          <div id="hourly" class="group" aria-live="polite"></div>
+          <div id="winners-empty" class="empty" style="display:none;">해당 시간대 당첨자가 없습니다.</div>
+        </section>
+      </div>
+
+      <footer>
+        <div class="refresh">
+          <button id="refresh-btn" type="button" title="새로고침">새로고침</button>
+          <span class="hint">1분마다 자동 새로고침됩니다.</span>
+        </div>
+        <div>
+          <span class="hint">표시 시간은 브라우저 로컬 시간대입니다.</span>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const $hourly = document.getElementById('hourly');
+      const $winnersEmpty = document.getElementById('winners-empty');
+      // removed unused: const $drawPill
+      const $nextDraw = document.getElementById('next-draw-pill');
+      const $refresh = document.getElementById('refresh-btn');
+
+      function toLocalHM(dateISO) {
+        const d = new Date(dateISO);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const next = new Date(d.getTime()); next.setHours(d.getHours() + 1);
+        const hh2 = String(next.getHours()).padStart(2, '0');
+        return `${y}.${m}.${dd}. ${hh}:00~${hh2}:00`;
+      }
+
+      function maskEmail(v) {
+        if (!v || typeof v !== 'string' || !v.includes('@')) return '—';
+        const [local, domain] = v.split('@');
+        if (local.length <= 2) return `${local[0] || '*'}*@${domain}`;
+        const head = local.slice(0, 2);
+        const tail = local.slice(-1);
+        return `${head}${'*'.repeat(Math.max(1, local.length - 3))}${tail}@${domain}`;
+      }
+
+      function maskPhone(v) {
+        const s = String(v || '');
+        const digits = s.replace(/\D+/g, '');
+        if (!digits) return '—';
+        if (digits.length <= 3) return '*'.repeat(digits.length);
+        return `${'*'.repeat(digits.length - 3)}${digits.slice(-3)}`;
+      }
+
+      // removed unused: toLocalTimeHM
+      function buildLast24HourSlots() {
+        const slots = [];
+        const hourMillis = 60 * 60 * 1000;
+        const end = new Date();
+        end.setMinutes(0, 0, 0);
+        // 시작점을 직전 정각으로 이동 (현재 08:24라면 07:00부터 표시)
+        end.setHours(end.getHours() - 1);
+        for (let i = 0; i < 24; i++) {
+          slots.push(new Date(end.getTime() - i * hourMillis));
+        }
+        return slots; // 최신이 앞(위)로 사용
+      }
+
+      function sameHour(a, b) {
+        return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate() && a.getUTCHours() === b.getUTCHours();
+      }
+
+      function renderHourlySlots(drawISO, winners) {
+        $hourly.innerHTML = '';
+        const slots = buildLast24HourSlots();
+        const drawHour = drawISO ? new Date(drawISO) : null;
+
+        // winners를 오일별로 카운트/대표자 선정
+        const byOil = new Map();
+        if (Array.isArray(winners)) {
+          for (const w of winners) {
+            const id = w.oilOptionId || 'unknown';
+            if (!byOil.has(id)) byOil.set(id, { count: 0, first: null });
+            const cur = byOil.get(id);
+            cur.count += 1;
+            if (!cur.first) cur.first = w;
+          }
+        }
+
+        for (const slot of slots) {
+          const block = document.createElement('div');
+          block.className = 'hour-block';
+          const title = document.createElement('div');
+          title.className = 'hour-title';
+          title.textContent = toLocalHM(slot.toISOString());
+          block.appendChild(title);
+
+          if (drawHour && sameHour(slot, drawHour)) block.classList.add('latest');
+
+          for (let i = 0; i < OILS.length; i++) {
+            const o = OILS[i];
+            const row = document.createElement('div');
+            row.className = `oil-row ${['oil-a','oil-b','oil-c'][i]}`;
+
+            const name = document.createElement('div');
+            name.className = 'oil-name';
+            name.textContent = o.text;
+            row.appendChild(name);
+
+            const desc = document.createElement('div');
+            desc.className = 'oil-desc';
+            if (drawHour && sameHour(slot, drawHour)) {
+              const info = byOil.get(o.id);
+              if (info && info.count > 0) {
+                const first = info.first || {};
+                const email = first.email ? maskEmail(first.email) : null;
+                const phone = first.phone ? maskPhone(first.phone) : null;
+                const others = info.count > 1 ? `\n${info.count - 1}명 추가 응모자` : '';
+                desc.textContent = [email || phone || '익명', others].filter(Boolean).join('');
+              } else {
+                desc.textContent = 'Draw skipped.';
+              }
+            } else {
+              desc.textContent = 'Draw skipped.';
+            }
+            row.appendChild(desc);
+            block.appendChild(row);
+          }
+          $hourly.appendChild(block);
+        }
+      }
+
+      const OILS = [
+        { id: 'c0d1f1f0-29e1-4f26-9d1d-549f42e6d5ad', text: 'Sesame Oil 138' },
+        { id: '3b97e12d-21c2-40df-92c5-69c53509be2a', text: 'Sesame Oil 167' },
+        { id: '39ba649a-863f-4dd7-b0a3-939019dddd7c', text: 'Sesame Oil 178' },
+      ];
+
+      let countdownTimer = null;
+      function nextTopOfHourLocal() {
+        const d = new Date();
+        d.setMinutes(0, 0, 0);
+        d.setHours(d.getHours() + 1);
+        return d;
+      }
+      function nextFromDraw() {
+        // 추첨 주기가 매시 정각이므로, 최근 추첨과 무관하게 다음 로컬 정각으로 계산
+        return nextTopOfHourLocal();
+      }
+      function nextFromNow() {
+        return nextTopOfHourLocal();
+      }
+      function formatRemain(ms) {
+        if (ms <= 0) return '곧 추첨';
+        const total = Math.floor(ms / 1000);
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${m}분 ${String(s).padStart(2, '0')}초`;
+      }
+      function startCountdown(target) {
+        if (!$nextDraw) return;
+        if (countdownTimer) clearInterval(countdownTimer);
+        const update = () => {
+          const now = Date.now();
+          const ms = target.getTime() - now;
+          $nextDraw.textContent = `다음 추첨까지 ${formatRemain(ms)}`;
+        };
+        update();
+        countdownTimer = setInterval(update, 1000);
+      }
+
+      async function load() {
+        try {
+          const res = await fetch('https://tally-to-d1.gyulkiller.workers.dev/winners/latest', { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error('네트워크 오류');
+          const data = await res.json();
+
+          const drawISO = data?.drawHourUtc || null;
+          const winners = Array.isArray(data?.winners) ? data.winners : [];
+          const hasWinners = winners.length > 0;
+
+          // 헤더 정보
+          startCountdown(nextFromDraw());
+
+          // 시간대별 24개 슬롯 렌더링
+          $winnersEmpty.style.display = 'none';
+          renderHourlySlots(drawISO, winners);
+        } catch (e) {
+          console.error(e);
+          // 오류 시에도 24개 슬롯을 참여자없음으로 표시
+          renderHourlySlots(null, []);
+          startCountdown(nextFromNow());
+        }
+      }
+
+      $refresh.addEventListener('click', () => load());
+      load();
+      setInterval(load, 60 * 1000);
+    </script>
+  </body>
+</html>
+
+

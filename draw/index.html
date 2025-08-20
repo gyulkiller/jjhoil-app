@@ -106,6 +106,18 @@
       background: none;
     }
     .toolbar input[type="range"] { display: none; }
+    .toolbar .field {
+      width: 160px;
+      height: 36px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.75);
+      padding: 0 12px;
+      font-size: 14px;
+      color: inherit;
+      outline: none;
+    }
+    .toolbar .field::placeholder { color: #666; }
     
     .toolbar button.active {
       background: rgba(0,122,255,0.12);
@@ -180,6 +192,46 @@
       backdrop-filter: saturate(180%) blur(16px);
       max-height: min(80vh, 560px);
       overflow: auto;
+    }
+    /* 입력 모달 */
+    #infoModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 11; }
+    #infoModal.open { display: flex; }
+    #infoModal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.25); backdrop-filter: blur(4px); }
+    #infoModal .dialog {
+      position: relative; z-index: 1; min-width: 280px; max-width: 90vw;
+      background: rgba(255,255,255,0.8); color: #111; border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      backdrop-filter: saturate(180%) blur(16px);
+    }
+    #infoModal .row { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; margin: 8px 0; }
+    #infoModal label { font-size: 13px; color: #444; }
+    #infoModal input { height: 36px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); padding: 0 10px; background: rgba(255,255,255,0.9); }
+    #infoModal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    #infoModal .actions button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.8); cursor: pointer; }
+    @media (prefers-color-scheme: dark) {
+      #infoModal .dialog { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+      #infoModal label { color: #c9c9ce; }
+      #infoModal .actions button { background: rgba(255,255,255,0.08); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
+    }
+
+    /* 업로드 진행 모달 */
+    #uploadModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 12; }
+    #uploadModal.open { display: flex; }
+    #uploadModal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); }
+    #uploadModal .dialog {
+      position: relative; z-index: 1; min-width: 260px; max-width: 90vw;
+      background: rgba(255,255,255,0.9); color: #111; border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+    .progress-wrap { width: min(360px, 70vw); height: 14px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #9fc9ff, #0a84ff); }
+    .progress-text { margin-top: 8px; text-align: center; font-size: 13px; color: #333; }
+    @media (prefers-color-scheme: dark) {
+      #uploadModal .dialog { background: rgba(20,20,24,0.92); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+      .progress-wrap { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.12); }
+      .progress-text { color: #e5e5ea; }
     }
     @media (prefers-color-scheme: dark) {
       #colorModal .dialog { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
@@ -330,6 +382,72 @@
     <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
     <button id="saveBtn" title="저장" aria-label="Save"><i data-lucide="save"></i></button>
   </div>
+  <!-- 이메일/전화 입력 모달 -->
+  <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="backdrop"></div>
+    <div class="dialog">
+      <div id="infoTitle" style="font-weight:600; margin-bottom:8px;">연락처 입력</div>
+      <div class="row"><label for="infoEmail">이메일</label><input id="infoEmail" type="email" placeholder="example@email.com" /></div>
+      <div class="row"><label for="infoPhone">전화번호</label><input id="infoPhone" type="tel" placeholder="010-0000-0000" /></div>
+      <div style="margin-top:8px; max-height: 36vh; overflow:auto; padding: 10px; border:1px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.7);">
+        <div style="font-weight:600; margin-bottom:6px;">이미지 사용 및 마케팅 활용 동의서</div>
+        <div style="font-size:13px; line-height:1.55; white-space:pre-wrap; color:#333;">
+[이미지 사용 및 마케팅 활용 동의서]
+
+본인은 아래의 내용을 충분히 이해하고 동의합니다.
+
+이미지 제공 및 사용 범위
+
+본인이 업로드한 그림(이미지)은 (주)그이름(이하 "회사")의 마케팅 및 홍보 목적(광고, 온라인·오프라인 게시물, 전시, SNS, 보도자료 등)으로 사용될 수 있습니다.
+
+사용 범위는 캐나다 및 해외를 포함한 전 지역이며, 사용 기간에 제한이 없습니다.
+
+권리 포기 및 저작권 관련 사항
+
+본인은 해당 그림의 저작권을 보유하되, 회사가 별도의 대가 없이 비독점적·영구적으로 이를 활용할 수 있는 권리를 부여합니다.
+
+회사는 필요에 따라 해당 이미지를 수정, 편집, 변형하여 사용할 수 있습니다.
+
+단, 회사는 본인의 명예나 신용을 훼손하는 방식으로 이미지를 사용하지 않습니다.
+
+개인정보 보호 및 캐나다 법 준수
+
+본 동의서는 캐나다의 개인정보보호법(PIPEDA) 및 관련 주 법률을 준수합니다.
+
+본인은 언제든지 서면 요청을 통해 동의를 철회할 수 있으며, 철회 시 이후의 신규 사용은 즉시 중단됩니다. (단, 이미 사용된 자료에 대해서는 철회가 불가능합니다.)
+
+동의 거부 시 불이익 안내
+
+본인은 이미지 사용에 대한 동의를 거부할 권리가 있습니다.
+
+다만, 동의하지 않을 경우 본 이벤트(프로모션/경품 행사 등) 참여가 불가능함을 이해합니다.
+
+책임 제한
+
+본인은 해당 이미지가 제3자의 저작권이나 초상권을 침해하지 않음을 보장하며, 만약 분쟁이 발생할 경우 본인이 책임을 부담합니다.
+
+본인은 위 내용을 모두 읽고 이해하였으며, 자발적으로 동의합니다.
+        </div>
+      </div>
+      <div class="row" style="grid-template-columns:auto 1fr; align-items:center;">
+        <input id="agreeChk" type="checkbox" style="width:18px; height:18px;" />
+        <label for="agreeChk">위 동의서 내용을 읽고 동의합니다.</label>
+      </div>
+      <div class="actions">
+        <button id="infoCancel">취소</button>
+        <button id="infoOk" disabled>확인</button>
+      </div>
+    </div>
+  </div>
+  <!-- 업로드 진행 모달 -->
+  <div id="uploadModal" role="dialog" aria-modal="true" aria-label="업로드 진행">
+    <div class="backdrop"></div>
+    <div class="dialog">
+      <div style="font-weight:600; margin-bottom:8px;">업로드 중...</div>
+      <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+      <div id="progressText" class="progress-text">0%</div>
+    </div>
+  </div>
   <!-- 커스텀 컬러 선택 모달 -->
   <div id="colorModal" role="dialog" aria-modal="true" aria-labelledby="colorTitle">
     <div class="backdrop"></div>
@@ -388,6 +506,11 @@
   </svg>
   <canvas id="c"></canvas>
 
+  <script>
+    // 업로드 엔드포인트 기본값 설정
+    window.DRAW_API_URL = 'https://tally-to-d1.gyulkiller.workers.dev/draw';
+  </script>
+
   <!-- ① CDN(EcmaScript Module)에서 라이브러리 로드  -->
   <script type="module">
     // iOS Safari 더블탭 확대 방지: 빠른 연속 탭을 소모
@@ -414,6 +537,19 @@
     const redoBtn  = document.getElementById('redoBtn');
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn  = document.getElementById('saveBtn');
+    // 입력/업로드 모달 요소
+    const infoModal = document.getElementById('infoModal');
+    const infoEmail = document.getElementById('infoEmail');
+    const infoPhone = document.getElementById('infoPhone');
+    const infoOk = document.getElementById('infoOk');
+    const infoCancel = document.getElementById('infoCancel');
+    const agreeChk = document.getElementById('agreeChk');
+    const uploadModal = document.getElementById('uploadModal');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // Worker 엔드포인트: 우선순위 (URL ?api=) > window.DRAW_API_URL > '/draw'
+    const DRAW_API_URL = new URLSearchParams(location.search).get('api') || (window.DRAW_API_URL || '/draw');
 
     resize();
     // iOS Safari에서 주소창/툴바 변화로 생기는 뷰포트 왜곡을 줄이기 위한 보정
@@ -860,33 +996,38 @@
       render();
     });
 
-    /* ===== 저장 기능 ===== */
-    saveBtn.addEventListener('click', () => {
-      // 오프스크린 캔버스 생성
+    /* ===== 저장(업로드) 기능 ===== */
+    async function composeDrawingBlob() {
       const exportCanvas = document.createElement('canvas');
       exportCanvas.width  = canvas.width;
       exportCanvas.height = canvas.height;
       const ectx = exportCanvas.getContext('2d');
 
-      // 배경 이미지: 화면 여백을 반영해 contain으로 그리기
       const bgEl = document.getElementById('bgSvg');
       const isDesktop = window.innerWidth >= 769;
       const marginX = isDesktop ? 140 : 40;
       const marginY = isDesktop ? 80 : 24;
       const boxW = Math.max(200, exportCanvas.width - marginX * 2);
       const boxH = Math.max(200, exportCanvas.height - marginY * 2);
-      // 흰 배경 채우기
+
+      // 배경 흰색 채우기
       ectx.save();
       ectx.fillStyle = '#ffffff';
       ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
       ectx.restore();
-      // SVG를 이미지로 변환하여 비율을 유지하며 그리기
+
+      // SVG를 이미지로 변환해서 contain으로 그림
       const serializer = new XMLSerializer();
       const svgString = serializer.serializeToString(bgEl);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
-      const img = new Image();
-      img.onload = () => {
+      try {
+        const img = await new Promise((resolve, reject) => {
+          const i = new Image();
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = url;
+        });
         const imgW = img.naturalWidth;
         const imgH = img.naturalHeight;
         const scale = Math.min(boxW / imgW, boxH / imgH);
@@ -895,15 +1036,86 @@
         const dx = Math.floor(marginX + (boxW - drawW) / 2);
         const dy = Math.floor(marginY + (boxH - drawH) / 2);
         ectx.drawImage(img, dx, dy, drawW, drawH);
-        // 그려진 스트로크 캔버스 합성 후 저장
-      ectx.drawImage(canvas, 0, 0);
-      const link = document.createElement('a');
-      link.href = exportCanvas.toDataURL('image/png');
-      link.download = 'drawing.png';
-      link.click();
+      } finally {
         URL.revokeObjectURL(url);
-      };
-      img.src = url;
+      }
+
+      // 사용자 드로잉 합성
+      ectx.drawImage(canvas, 0, 0);
+
+      const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('이미지 생성 실패');
+      return blob;
+    }
+
+    function openInfoModal() {
+      // 초기화
+      if (infoEmail) infoEmail.value = '';
+      if (infoPhone) infoPhone.value = '';
+      if (agreeChk) { agreeChk.checked = false; }
+      if (infoOk) infoOk.disabled = true;
+      infoModal.classList.add('open');
+      setTimeout(() => infoEmail.focus(), 0);
+    }
+    function closeInfoModal() { infoModal.classList.remove('open'); }
+    function openUploadModal() { uploadModal.classList.add('open'); setProgress(0); }
+    function closeUploadModal() { uploadModal.classList.remove('open'); }
+    function setProgress(p) {
+      const clamped = Math.max(0, Math.min(100, Math.round(p)));
+      if (progressBar) progressBar.style.width = clamped + '%';
+      if (progressText) progressText.textContent = clamped + '%';
+    }
+
+    async function uploadDrawing(email, phone) {
+      try {
+        saveBtn.disabled = true;
+        openUploadModal();
+        const blob = await composeDrawingBlob();
+        const fd = new FormData();
+        fd.append('email', email);
+        fd.append('phone', phone);
+        fd.append('image', new File([blob], 'drawing.png', { type: 'image/png' }));
+        setProgress(10);
+        // fetch로는 실제 업로드 진행률 이벤트를 얻기 어렵기 때문에 단계별 가중치 표시
+        const res = await fetch(DRAW_API_URL, { method: 'POST', body: fd });
+        setProgress(75);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          const msg = data?.error || `업로드 실패 (HTTP ${res.status})`;
+          throw new Error(msg);
+        }
+        setProgress(100);
+        alert('업로드가 완료되었습니다. 감사합니다!');
+        // 성공 후 필요 시 그리기 초기화
+        // strokes.length = 0; undoneStrokes.length = 0; render();
+      } catch (e) {
+        console.error(e);
+        alert('업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        saveBtn.disabled = false;
+        closeUploadModal();
+      }
+    }
+    // 저장 버튼 → 연락처 입력 모달 오픈
+    saveBtn.addEventListener('click', () => {
+      openInfoModal();
+    });
+    // 동의 체크박스에 따라 확인 버튼 활성/비활성
+    agreeChk.addEventListener('change', () => {
+      infoOk.disabled = !agreeChk.checked;
+    });
+    // 모달 취소
+    infoCancel.addEventListener('click', () => closeInfoModal());
+    infoModal.querySelector('.backdrop').addEventListener('click', () => closeInfoModal());
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (infoModal.classList.contains('open')) closeInfoModal(); } });
+    // 모달 확인 → 유효성 검사 후 업로드 실행
+    infoOk.addEventListener('click', () => {
+      const email = (infoEmail?.value || '').trim();
+      const phone = (infoPhone?.value || '').trim();
+      if (!agreeChk.checked) { alert('동의서에 동의해 주세요.'); return; }
+      if (!email || !phone) { alert('이메일과 전화번호를 입력해주세요.'); return; }
+      closeInfoModal();
+      uploadDrawing(email, phone);
     });
 
     /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
