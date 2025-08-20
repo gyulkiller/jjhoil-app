@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oil Tasting Note</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 680px;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .center-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .center-image {
+            background-image: url('img/onlyu.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Apple-like full-screen loader */
+        .apple-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 400ms ease;
+        }
+
+        .apple-loader.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .apple-loader-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .loader-text {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            color: rgba(0,0,0,0.7);
+            letter-spacing: 0.2px;
+        }
+
+        /* iOS-like spinner (12 bars) */
+        .apple-spinner {
+            color: #000;
+            display: inline-block;
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+        .apple-spinner div {
+            transform-origin: 24px 24px;
+            animation: apple-spinner 1.2s linear infinite;
+        }
+        .apple-spinner div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: 22px;
+            width: 4px;
+            height: 10px;
+            border-radius: 2px;
+            background: rgba(0,0,0,0.8);
+        }
+        .apple-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s; }
+        .apple-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1.0s; }
+        .apple-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s; }
+        .apple-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s; }
+        .apple-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s; }
+        .apple-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s; }
+        .apple-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s; }
+        .apple-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s; }
+        .apple-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s; }
+        .apple-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s; }
+        .apple-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s; }
+        .apple-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+        @keyframes apple-spinner {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Header lines */
+        .header-text {
+            text-align: center;
+            margin: 12px 0 8px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #111;
+        }
+
+        /* Top title banner */
+        .title-banner {
+            width: 100%;
+            text-align: center;
+            margin: 4px 0 10px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #FFD54F, #FF9800, #F44336);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        @media (max-width: 480px) {
+            .title-banner { font-size: 20px; }
+        }
+
+        .header-pill {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            margin : 3px 0;
+        }
+        .header-pill.yellow { background: #FFEB3B; color: #000; }
+        .header-pill.orange { background: #FF9800; color: #000; }
+        .header-pill.red { background: #F44336; color: #000; }
+
+        /* Foods section */
+        .foods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 24px;
+        }
+        .food-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            background: #fff;
+        }
+        .food-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge {
+            background: #f5f5f5;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        .food-reason {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .header-text { font-size: 15px; }
+            .chart-container { max-width: 560px; aspect-ratio: 1 / 1.05; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 12px 10px; }
+            .header-text { font-size: 14px; }
+            .chart-container { max-width: 100%; aspect-ratio: 1 / 1.15; }
+            .center-image { width: 32px; height: 32px; }
+            .foods { grid-template-columns: 1fr; gap: 12px; }
+            .food-card { padding: 12px; }
+            .badge { font-size: 12px; padding: 5px 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader" class="apple-loader">
+        <div class="apple-loader-inner">
+            <div class="apple-spinner">
+                <div></div><div></div><div></div><div></div><div></div><div></div>
+                <div></div><div></div><div></div><div></div><div></div><div></div>
+            </div>
+            <div class="loader-text">로딩 중…</div>
+        </div>
+    </div>
+    <div id="titleBanner" class="title-banner"></div>
+
+    <div id="headerText" class="header-text"></div>
+
+    <div class="chart-container">
+        <canvas id="radarChart"></canvas>
+        <div class="center-image"></div>
+    </div>
+
+    
+
+    <script>
+        const ctx = document.getElementById('radarChart').getContext('2d');
+
+        
+        const BASE_URL = 'https://script.google.com/macros/s/AKfycbxcu8yCdOHfsr9s5IwmPNUxxOcXYrjmH3jX4NZkUOjkGkvXpU3JOz2lq_KWKEFMt8ku-A/exec';
+        const urlParams = new URLSearchParams(window.location.search);
+        const aParam = urlParams.get('a');
+        const API_URL = BASE_URL + (aParam ? ('?a=' + encodeURIComponent(aParam)) : '');
+
+        let radarChart = null;
+
+        function getMetricValue(row, oilCode, metricPrefix) {
+            const targetKey = Object.keys(row).find(key => key.startsWith(metricPrefix) && key.includes(String(oilCode)));
+            if (!targetKey) return null;
+            const value = Number(row[targetKey]);
+            return Number.isFinite(value) ? value : null;
+        }
+
+        function buildData(row, oilCode) {
+            const metricsOrder = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
+            return metricsOrder.map(metric => getMetricValue(row, oilCode, metric + '. '));
+        }
+
+        function renderTitle(row) {
+            const title = document.getElementById('titleBanner');
+            if (!title) return;
+            const nameKey = Object.keys(row).find(k => k.includes('이름'));
+            const userName = nameKey ? String(row[nameKey]).trim() : '';
+            title.textContent = userName ? `${userName}의 오일 테이스팅 노트` : '오일 테이스팅 노트';
+        }
+
+        function createChart(datasets) {
+            const labels = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
+            if (radarChart) {
+                radarChart.destroy();
+            }
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 5,
+                            min: 0,
+                            ticks: {
+                                stepSize: 1,
+                                display: false
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: '#000'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.r;
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 4,
+                            hoverRadius: 6
+                        }
+                    }
+                }
+            });
+
+            // 위치 보정: 실제 레이더 중심에 아이콘 정렬
+            requestAnimationFrame(() => positionCenterImage(radarChart));
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            if (!loader) return;
+            loader.classList.add('hide');
+            setTimeout(() => { loader.style.display = 'none'; }, 450);
+        }
+        
+        function updateLoaderText(text) {
+            const el = document.querySelector('.loader-text');
+            if (el) el.textContent = text;
+        }
+
+        function positionCenterImage(chart) {
+            if (!chart) return;
+            const scale = chart.scales && chart.scales.r;
+            const el = document.querySelector('.center-image');
+            if (!scale || !el) return;
+            // r.xCenter / yCenter는 캔버스 좌표계 기준(px)
+            el.style.left = scale.xCenter + 'px';
+            el.style.top = scale.yCenter + 'px';
+        }
+
+        function extractFoodSelections(row, oilCode) {
+            const baseMatcher = `참기름 ${oilCode}`;
+            const selections = new Set();
+
+            // 1) Boolean category answers in parentheses (우선 사용)
+            let hasBoolean = false;
+            Object.entries(row).forEach(([k, v]) => {
+                if (k.includes(baseMatcher) && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
+                    hasBoolean = true;
+                    const open = k.lastIndexOf('(');
+                    const close = k.lastIndexOf(')');
+                    const fullLabel = open !== -1 && close !== -1 && close > open
+                        ? k.substring(open + 1, close).trim()
+                        : '';
+                    if (!fullLabel) return;
+                    const dashIdx = fullLabel.indexOf(' – ');
+                    if (dashIdx > -1) {
+                        const category = fullLabel.substring(0, dashIdx).trim();
+                        const itemsStr = fullLabel.substring(dashIdx + 3).trim();
+                        const items = itemsStr.split(',').map(s => s.trim()).filter(Boolean);
+                        if (items.length > 0) {
+                            selections.add(`${category} – ${items[0]}`);
+                            for (let i = 1; i < items.length; i += 1) {
+                                selections.add(items[i]);
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (hasBoolean) {
+                return Array.from(selections);
+            }
+
+            // 2) Consolidated string answer (불리언이 없을 때만 사용)
+            const stringKey = Object.keys(row).find(k =>
+                k.includes(baseMatcher) &&
+                k.includes('가장 잘 어울린다고') &&
+                k.includes('무엇인가요?') &&
+                !k.includes('? (')
+            );
+            if (stringKey && typeof row[stringKey] === 'string' && row[stringKey].trim().length > 0) {
+                row[stringKey].split(',').forEach(item => {
+                    const t = item.trim();
+                    if (t) selections.add(t);
+                });
+            }
+
+            return Array.from(selections);
+        }
+
+        function extractFoodReason(row, oilCode) {
+            const reasonKey = Object.keys(row).find(k => k.includes(`선택한 요리들이 참기름 ${oilCode}`));
+            const reason = reasonKey ? row[reasonKey] : '';
+            return typeof reason === 'string' ? reason.trim() : '';
+        }
+
+        function getFoodFullAnswer(row, oilCode) {
+            const baseMatcher = `참기름 ${oilCode}`;
+            const stringKey = Object.keys(row).find(k =>
+                k.includes(baseMatcher) &&
+                k.includes('가장 잘 어울린다고') &&
+                k.includes('무엇인가요?') &&
+                !k.includes('? (')
+            );
+            if (stringKey && typeof row[stringKey] === 'string') {
+                const s = row[stringKey].trim();
+                if (s) return s;
+            }
+            const selections = extractFoodSelections(row, oilCode);
+            return Array.isArray(selections) && selections.length ? selections.join(', ') : '';
+        }
+
+        function getHeaderCategory(row, oilCode) {
+            const full = getFoodFullAnswer(row, oilCode);
+            if (!full) return '';
+            const idx = full.indexOf(' – ');
+            return idx > -1 ? full.substring(0, idx).trim() : full.trim();
+        }
+
+        function renderFoods(row) {
+            [138, 167, 178].forEach(code => {
+                const foods = extractFoodSelections(row, code);
+                const container = document.getElementById(`foods-${code}`);
+                const reasonEl = document.getElementById(`reason-${code}`);
+                if (!container) return;
+                container.innerHTML = '';
+                if (foods.length === 0) {
+                    const span = document.createElement('span');
+                    span.className = 'badge';
+                    span.textContent = '선택된 음식 없음';
+                    container.appendChild(span);
+                } else {
+                    foods.forEach(label => {
+                        const span = document.createElement('span');
+                        span.className = 'badge';
+                        span.textContent = label;
+                        container.appendChild(span);
+                    });
+                }
+                if (reasonEl) {
+                    const reason = extractFoodReason(row, code);
+                    reasonEl.textContent = reason ? `이유: ${reason}` : '';
+                }
+            });
+        }
+
+        function selectRepresentativeFood(foods) {
+            if (!Array.isArray(foods) || foods.length === 0) return '';
+            return String(foods[0]);
+        }
+
+        function renderHeaderLines(row) {
+            const h = document.getElementById('headerText');
+            if (!h) return;
+            const l138 = getHeaderCategory(row, 138);
+            const l167 = getHeaderCategory(row, 167);
+            const l178 = getHeaderCategory(row, 178);
+            h.innerHTML = `<span class="header-pill yellow">참기름 138로 만든 ${l138 || '선택된 음식 없음'}</span><br>` +
+                          `<span class="header-pill orange">참기름 167로 만든 ${l167 || '선택된 음식 없음'}</span><br>` +
+                          `<span class="header-pill red">참기름 178로 만든 ${l178 || '선택된 음식 없음'}</span><br>` +
+                          `<span  class="header-pill">모두 맛있을 거예요😋</span>`
+        }
+
+        function hasValidDatasets(dsList) {
+            // 하나라도 유효 숫자가 있으면 true
+            return dsList.some(ds => Array.isArray(ds) && ds.some(v => Number.isFinite(v)));
+        }
+
+        async function loadAndRender() {
+            let retryCount = 0;
+            const baseDelayMs = 1000;
+            const maxDelayMs = 15000;
+
+            while (true) {
+                try {
+                    const response = await fetch(API_URL, { cache: 'no-store' });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    const data = await response.json();
+                    const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+                    if (!row) throw new Error('데이터 없음');
+
+                    const ds138 = buildData(row, 138);
+                    const ds167 = buildData(row, 167);
+                    const ds178 = buildData(row, 178);
+
+                    if (!hasValidDatasets([ds138, ds167, ds178])) {
+                        throw new Error('유효한 데이터가 아직 없음');
+                    }
+
+                    const datasets = [
+                        {
+                            label: '참기름 138',
+                            data: ds138,
+                            backgroundColor: 'rgba(255, 235, 59, 0.3)',
+                            borderColor: 'rgba(255, 235, 59, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(255, 235, 59, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(255, 235, 59, 1)'
+                        },
+                        {
+                            label: '참기름 167',
+                            data: ds167,
+                            backgroundColor: 'rgba(255, 152, 0, 0.3)',
+                            borderColor: 'rgba(255, 152, 0, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(255, 152, 0, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(255, 152, 0, 1)'
+                        },
+                        {
+                            label: '참기름 178',
+                            data: ds178,
+                            backgroundColor: 'rgba(244, 67, 54, 0.3)',
+                            borderColor: 'rgba(244, 67, 54, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(244, 67, 54, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(244, 67, 54, 1)'
+                        }
+                    ];
+
+                    createChart(datasets);
+                    renderTitle(row);
+                    renderHeaderLines(row);
+                    hideLoader();
+                    break;
+                } catch (e) {
+                    retryCount += 1;
+                    const delay = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, retryCount - 1));
+                    console.warn('재시도', retryCount, '대기', delay, 'ms:', e.message || e);
+                    updateLoaderText(`데이터를 기다리는 중… (재시도 ${retryCount}, ${Math.round(delay/1000)}초 후)`);
+                    await new Promise(res => setTimeout(res, delay));
+                    continue;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAndRender);
+        window.addEventListener('resize', () => positionCenterImage(radarChart));
+    </script>
+</body>
+</html> 
