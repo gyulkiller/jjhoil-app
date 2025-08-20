@@ -31,6 +31,8 @@
       object-position: center center;
       z-index: 2;
     }
+    /* 확대/이동 시 SVG 배경과 캔버스 정합 확보 */
+    #bgSvg { transform-origin: 0 0; }
     /* === 툴바 스타일 === */
     .toolbar {
       position: fixed;
@@ -207,6 +209,9 @@
     #infoModal .row { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; margin: 8px 0; }
     #infoModal label { font-size: 13px; color: #444; }
     #infoModal input { height: 36px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); padding: 0 10px; background: rgba(255,255,255,0.9); }
+    #infoModal input.invalid { border-color: #e00; box-shadow: 0 0 0 2px rgba(255,0,0,0.08) inset; }
+    #infoModal .error-msg { display:none; font-size: 12px; color: #e00; margin: 4px 0 0 0; grid-column: 2 / span 1; }
+    #infoModal .error-msg.show { display:block; }
     #infoModal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
     #infoModal .actions button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.8); cursor: pointer; }
     @media (prefers-color-scheme: dark) {
@@ -225,6 +230,16 @@
       border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     }
+    /* 업로드 완료 모달 */
+    #successModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 13; }
+    #successModal.open { display: flex; }
+    #successModal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); }
+    #successModal .dialog {
+      position: relative; z-index: 1; min-width: 260px; max-width: 92vw;
+      background: rgba(255,255,255,0.92); color: #111; border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
     .progress-wrap { width: min(360px, 70vw); height: 14px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
     .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #9fc9ff, #0a84ff); }
     .progress-text { margin-top: 8px; text-align: center; font-size: 13px; color: #333; }
@@ -232,6 +247,7 @@
       #uploadModal .dialog { background: rgba(20,20,24,0.92); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
       .progress-wrap { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.12); }
       .progress-text { color: #e5e5ea; }
+      #successModal .dialog { background: rgba(20,20,24,0.94); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
     }
     @media (prefers-color-scheme: dark) {
       #colorModal .dialog { background: rgba(20,20,24,0.9); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
@@ -359,9 +375,43 @@
       .palette { grid-template-columns: 36px; gap: 6px; margin: 0 4px; }
       .palette .swatch:not(.rainbow) { display: none; }
     }
+    /* 시작 선택 화면 */
+    #startScreen { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.8)); backdrop-filter: blur(4px); }
+    #startScreen .card { width: min(520px, 92vw); border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.9); box-shadow: 0 12px 36px rgba(0,0,0,0.18); padding: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+    #startScreen .title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: #111; }
+    #startScreen .desc { font-size: 14px; color: #444; margin-bottom: 12px; }
+    #startScreen .actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    #startScreen .actions button { height: 48px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; font-size: 15px; }
+    #startScreen .actions button.primary { background: #0a84ff; color: #fff; border-color: rgba(10,132,255,0.6); }
+    @media (prefers-color-scheme: dark) {
+      #startScreen { background: linear-gradient(180deg, rgba(20,20,24,0.78), rgba(20,20,24,0.78)); }
+      #startScreen .card { background: rgba(20,20,24,0.92); color: #f5f5f7; border-color: rgba(255,255,255,0.08); }
+      #startScreen .desc { color: #c9c9ce; }
+      #startScreen .actions button { background: rgba(255,255,255,0.06); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
+      #startScreen .actions button.primary { background: rgba(10,132,255,0.9); color: #fff; }
+    }
+    /* 업로드 파일 선택 UI */
+    .file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .file-actions button { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.8); cursor: pointer; }
+    .file-info { font-size: 12px; color: #555; margin-top: 6px; }
+    @media (prefers-color-scheme: dark) {
+      .file-actions button { background: rgba(255,255,255,0.08); color: #f5f5f7; border-color: rgba(255,255,255,0.12); }
+      .file-info { color: #c9c9ce; }
+    }
   </style>
 </head>
 <body>
+  <!-- 시작 선택 화면 -->
+  <div id="startScreen" aria-label="시작 선택">
+    <div class="card">
+      <div class="title">무대 위의 미술관</div>
+      <div class="desc">그림을 그리거나, 이미 그린 작품을 업로드할 수 있어요.</div>
+      <div class="actions">
+        <button id="startOnlineBtn" class="primary">온라인에서 그리기</button>
+        <button id="startUploadBtn">오프라인에서 그린 그림 업로드</button>
+      </div>
+    </div>
+  </div>
   <!-- === 그리기 툴바 === -->
   <div class="toolbar" id="toolbar">
     <button id="brushBtn" title="붓" class="active" aria-label="Brush"><i data-lucide="paintbrush-2"></i><span class="color-dot" id="currentColorDot"></span></button>
@@ -387,45 +437,63 @@
     <div class="backdrop"></div>
     <div class="dialog">
       <div id="infoTitle" style="font-weight:600; margin-bottom:8px;">연락처 입력</div>
+      <div id="contactNotice" style="font-size:12px; color:#666; margin-bottom:8px;">이벤트 참여를 위해 오일 테이스팅 참여 시 기재한 연락처와 동일한 연락처를 입력해 주세요.</div>
       <div class="row"><label for="infoEmail">이메일</label><input id="infoEmail" type="email" placeholder="example@email.com" /></div>
+      <div class="error-msg" id="emailErr">유효한 이메일을 입력해주세요.</div>
       <div class="row"><label for="infoPhone">전화번호</label><input id="infoPhone" type="tel" placeholder="010-0000-0000" /></div>
+      <div class="error-msg" id="phoneErr">유효한 전화번호를 입력해주세요.</div>
+      <!-- 업로드 모드에서만 노출되는 파일 선택 영역 -->
+      <div id="fileRow" class="row" style="display:none; grid-template-columns:auto 1fr; align-items:start;">
+        <label style="margin-top:6px;">이미지</label>
+        <div>
+          <div class="file-actions">
+            <button id="pickFromGalleryBtn" type="button">갤러리에서 선택</button>
+            <button id="takePhotoBtn" type="button">사진 촬영</button>
+          </div>
+          <input id="fileGallery" type="file" accept="image/*" style="display:none" />
+          <input id="fileCamera" type="file" accept="image/*" capture="environment" style="display:none" />
+          <div id="fileInfo" class="file-info">선택된 파일 없음</div>
+        </div>
+      </div>
+      <div class="error-msg" id="fileErr">이미지를 선택해주세요.</div>
       <div style="margin-top:8px; max-height: 36vh; overflow:auto; padding: 10px; border:1px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.7);">
         <div style="font-weight:600; margin-bottom:6px;">이미지 사용 및 마케팅 활용 동의서</div>
         <div style="font-size:13px; line-height:1.55; white-space:pre-wrap; color:#333;">
-[이미지 사용 및 마케팅 활용 동의서]
+<strong>[이미지 사용 및 마케팅 활용 동의서]</strong>
 
 본인은 아래의 내용을 충분히 이해하고 동의합니다.
 
-이미지 제공 및 사용 범위
+<br><strong>1. 이미지 제공 및 사용 범위</strong>
+<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">
+  <li>본인이 업로드한 그림(이미지)은 (주)그이름(이하 "회사")의 마케팅 및 홍보 목적(광고, 온라인·오프라인 게시물, 전시, SNS, 보도자료 등)으로 사용될 수 있습니다.</li>
+  <li>사용 범위는 캐나다 및 해외를 포함한 전 지역이며, 사용 기간에 제한이 없습니다.</li>
+</ul>
 
-본인이 업로드한 그림(이미지)은 (주)그이름(이하 "회사")의 마케팅 및 홍보 목적(광고, 온라인·오프라인 게시물, 전시, SNS, 보도자료 등)으로 사용될 수 있습니다.
+<strong>2. 권리 포기 및 저작권 관련 사항</strong>
+<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">
+  <li>본인은 해당 그림의 저작권을 보유하되, 회사가 별도의 대가 없이 비독점적·영구적으로 이를 활용할 수 있는 권리를 부여합니다.</li>
+  <li>회사는 필요에 따라 해당 이미지를 수정, 편집, 변형하여 사용할 수 있습니다.</li>
+  <li>단, 회사는 본인의 명예나 신용을 훼손하는 방식으로 이미지를 사용하지 않습니다.</li>
+</ul>
 
-사용 범위는 캐나다 및 해외를 포함한 전 지역이며, 사용 기간에 제한이 없습니다.
+<strong>3. 개인정보 보호 및 캐나다 법 준수</strong>
+<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">
+  <li>본 동의서는 캐나다의 개인정보보호법(PIPEDA) 및 관련 주 법률을 준수합니다.</li>
+  <li>본인은 언제든지 서면 요청을 통해 동의를 철회할 수 있으며, 철회 시 이후의 신규 사용은 즉시 중단됩니다. (단, 이미 사용된 자료에 대해서는 철회가 불가능합니다.)</li>
+</ul>
 
-권리 포기 및 저작권 관련 사항
+<strong>4. 동의 거부 시 불이익 안내</strong>
+<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">
+  <li>본인은 이미지 사용에 대한 동의를 거부할 권리가 있습니다.</li>
+  <li>다만, 동의하지 않을 경우 본 이벤트(프로모션/경품 행사 등) 참여가 불가능함을 이해합니다.</li>
+</ul>
 
-본인은 해당 그림의 저작권을 보유하되, 회사가 별도의 대가 없이 비독점적·영구적으로 이를 활용할 수 있는 권리를 부여합니다.
+<strong>5. 책임 제한</strong>
+<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">
+  <li>본인은 해당 이미지가 제3자의 저작권이나 초상권을 침해하지 않음을 보장하며, 만약 분쟁이 발생할 경우 본인이 책임을 부담합니다.</li>
+</ul>
 
-회사는 필요에 따라 해당 이미지를 수정, 편집, 변형하여 사용할 수 있습니다.
-
-단, 회사는 본인의 명예나 신용을 훼손하는 방식으로 이미지를 사용하지 않습니다.
-
-개인정보 보호 및 캐나다 법 준수
-
-본 동의서는 캐나다의 개인정보보호법(PIPEDA) 및 관련 주 법률을 준수합니다.
-
-본인은 언제든지 서면 요청을 통해 동의를 철회할 수 있으며, 철회 시 이후의 신규 사용은 즉시 중단됩니다. (단, 이미 사용된 자료에 대해서는 철회가 불가능합니다.)
-
-동의 거부 시 불이익 안내
-
-본인은 이미지 사용에 대한 동의를 거부할 권리가 있습니다.
-
-다만, 동의하지 않을 경우 본 이벤트(프로모션/경품 행사 등) 참여가 불가능함을 이해합니다.
-
-책임 제한
-
-본인은 해당 이미지가 제3자의 저작권이나 초상권을 침해하지 않음을 보장하며, 만약 분쟁이 발생할 경우 본인이 책임을 부담합니다.
-
+<br>
 본인은 위 내용을 모두 읽고 이해하였으며, 자발적으로 동의합니다.
         </div>
       </div>
@@ -433,6 +501,7 @@
         <input id="agreeChk" type="checkbox" style="width:18px; height:18px;" />
         <label for="agreeChk">위 동의서 내용을 읽고 동의합니다.</label>
       </div>
+      <div class="error-msg" id="agreeErr">동의서에 동의해 주세요.</div>
       <div class="actions">
         <button id="infoCancel">취소</button>
         <button id="infoOk" disabled>확인</button>
@@ -446,6 +515,22 @@
       <div style="font-weight:600; margin-bottom:8px;">업로드 중...</div>
       <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
       <div id="progressText" class="progress-text">0%</div>
+    </div>
+  </div>
+  <!-- 업로드 완료 모달 -->
+  <div id="successModal" role="dialog" aria-modal="true" aria-label="업로드 완료">
+    <div class="backdrop"></div>
+    <div class="dialog">
+      <div style="font-weight:700; margin-bottom:6px;">업로드가 완료되었습니다. 감사합니다!</div>
+      <div style="font-size:13px; color:#444; line-height:1.55;">당첨자 발표는 아래 페이지에서 확인하실 수 있습니다.<br/>
+        <a id="winnersLink" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener" style="color:#0a84ff; text-decoration:underline;">당첨자 발표 페이지 열기</a>
+      </div>
+      <div class="actions" style="margin-top:12px; justify-content:flex-end;">
+        <button id="successCloseBtn" type="button">닫기</button>
+        <a id="successGoBtn" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener">
+          <button type="button" style="background:#0a84ff; color:#fff; border-color:rgba(10,132,255,0.6);">바로 확인</button>
+        </a>
+      </div>
     </div>
   </div>
   <!-- 커스텀 컬러 선택 모달 -->
@@ -547,11 +632,28 @@
     const uploadModal = document.getElementById('uploadModal');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    const successModal = document.getElementById('successModal');
+    const successCloseBtn = document.getElementById('successCloseBtn');
+    
+    // 시작 화면 및 업로드 모드 관련 요소
+    const startScreen = document.getElementById('startScreen');
+    const startOnlineBtn = document.getElementById('startOnlineBtn');
+    const startUploadBtn = document.getElementById('startUploadBtn');
+    const fileRow = document.getElementById('fileRow');
+    const pickFromGalleryBtn = document.getElementById('pickFromGalleryBtn');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+    const fileGallery = document.getElementById('fileGallery');
+    const fileCamera = document.getElementById('fileCamera');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileErr = document.getElementById('fileErr');
+    
+    let currentMode = 'draw'; // 'draw' | 'upload'
+    let selectedFile = null;
 
     // Worker 엔드포인트: 우선순위 (URL ?api=) > window.DRAW_API_URL > '/draw'
     const DRAW_API_URL = new URLSearchParams(location.search).get('api') || (window.DRAW_API_URL || '/draw');
 
-    resize();
+    // 초기 리사이즈 호출은 뷰 변환 상태 초기화 이후로 지연
     // iOS Safari에서 주소창/툴바 변화로 생기는 뷰포트 왜곡을 줄이기 위한 보정
     function getViewportSize() {
       const vv = window.visualViewport;
@@ -595,6 +697,57 @@
     let currentColor = colorPicker.value;
     let currentSize  = 8;
     let isEraser = false;
+
+    /* ===== 보기(뷰) 변환 상태: 확대/이동 ===== */
+    let viewScale = 1;
+    let viewTranslateX = 0;
+    let viewTranslateY = 0;
+    const MIN_SCALE = 0.5;
+    const MAX_SCALE = 4;
+    // 배경 SVG의 고정 레이아웃 기준(left/top)을 기억해서 스케일 보정에 사용
+    let bgBaseLeft = 0;
+    let bgBaseTop = 0;
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function screenToWorld(x, y) {
+      return [
+        (x - viewTranslateX) / viewScale,
+        (y - viewTranslateY) / viewScale
+      ];
+    }
+    function worldToScreen(x, y) {
+      return [
+        x * viewScale + viewTranslateX,
+        y * viewScale + viewTranslateY
+      ];
+    }
+    function applyBgTransform() {
+      const bg = document.getElementById('bgSvg');
+      if (!bg) return;
+      const s = viewScale;
+      const extraX = bgBaseLeft * (s - 1);
+      const extraY = bgBaseTop * (s - 1);
+      const tx = Math.round(viewTranslateX + extraX);
+      const ty = Math.round(viewTranslateY + extraY);
+      bg.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    }
+    function setView(scale, tx, ty) {
+      viewScale = clamp(scale, MIN_SCALE, MAX_SCALE);
+      viewTranslateX = tx;
+      viewTranslateY = ty;
+      applyBgTransform();
+      render();
+    }
+    function zoomAt(canvasX, canvasY, factor) {
+      const newScale = clamp(viewScale * factor, MIN_SCALE, MAX_SCALE);
+      const worldX = (canvasX - viewTranslateX) / viewScale;
+      const worldY = (canvasY - viewTranslateY) / viewScale;
+      const newTx = canvasX - worldX * newScale;
+      const newTy = canvasY - worldY * newScale;
+      setView(newScale, newTx, newTy);
+    }
+    // 초기 레이아웃 계산 수행
+    resize();
 
     /* ===== UI 이벤트 ===== */
     // 사이즈 팝오버
@@ -1040,22 +1193,38 @@
         URL.revokeObjectURL(url);
       }
 
-      // 사용자 드로잉 합성
-      ectx.drawImage(canvas, 0, 0);
+      // 사용자 드로잉 합성: 저장은 뷰 변환 없이 원본 좌표계로 다시 그림
+      strokes.forEach(s => drawStrokeToContext(ectx, s.points, s.color, s.size, s.isEraser));
 
       const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('이미지 생성 실패');
       return blob;
     }
 
-    function openInfoModal() {
+    function openInfoModal(mode = 'draw') {
+      currentMode = mode;
       // 초기화
       if (infoEmail) infoEmail.value = '';
       if (infoPhone) infoPhone.value = '';
       if (agreeChk) { agreeChk.checked = false; }
-      if (infoOk) infoOk.disabled = true;
+      if (infoOk) infoOk.disabled = false; // 항상 클릭 가능, 경고는 클릭 시 표출
+      // 파일 관련 초기화
+      selectedFile = null;
+      if (fileInfo) fileInfo.textContent = '선택된 파일 없음';
+      if (fileErr) fileErr.classList.remove('show');
+      // 모드에 따른 파일 영역 노출
+      if (fileRow) fileRow.style.display = (mode === 'upload') ? 'grid' : 'none';
+      // 경고 초기화
+      const emailErr = document.getElementById('emailErr');
+      const phoneErr = document.getElementById('phoneErr');
+      const agreeErr = document.getElementById('agreeErr');
+      emailErr?.classList.remove('show');
+      phoneErr?.classList.remove('show');
+      agreeErr?.classList.remove('show');
+      infoEmail?.classList.remove('invalid');
+      infoPhone?.classList.remove('invalid');
       infoModal.classList.add('open');
-      setTimeout(() => infoEmail.focus(), 0);
+      setTimeout(() => { infoEmail.focus(); }, 0);
     }
     function closeInfoModal() { infoModal.classList.remove('open'); }
     function openUploadModal() { uploadModal.classList.add('open'); setProgress(0); }
@@ -1065,6 +1234,8 @@
       if (progressBar) progressBar.style.width = clamped + '%';
       if (progressText) progressText.textContent = clamped + '%';
     }
+    function openSuccessModal() { successModal?.classList.add('open'); }
+    function closeSuccessModal() { successModal?.classList.remove('open'); }
 
     async function uploadDrawing(email, phone) {
       try {
@@ -1085,7 +1256,7 @@
           throw new Error(msg);
         }
         setProgress(100);
-        alert('업로드가 완료되었습니다. 감사합니다!');
+        openSuccessModal();
         // 성공 후 필요 시 그리기 초기화
         // strokes.length = 0; undoneStrokes.length = 0; render();
       } catch (e) {
@@ -1096,66 +1267,283 @@
         closeUploadModal();
       }
     }
+
+    async function uploadPhoto(email, phone, file) {
+      try {
+        saveBtn.disabled = true;
+        openUploadModal();
+        const fd = new FormData();
+        fd.append('email', email);
+        fd.append('phone', phone);
+        fd.append('image', file);
+        setProgress(10);
+        const res = await fetch(DRAW_API_URL, { method: 'POST', body: fd });
+        setProgress(75);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          const msg = data?.error || `업로드 실패 (HTTP ${res.status})`;
+          throw new Error(msg);
+        }
+        setProgress(100);
+        openSuccessModal();
+      } catch (e) {
+        console.error(e);
+        alert('업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        saveBtn.disabled = false;
+        closeUploadModal();
+      }
+    }
     // 저장 버튼 → 연락처 입력 모달 오픈
     saveBtn.addEventListener('click', () => {
-      openInfoModal();
+      openInfoModal('draw');
     });
-    // 동의 체크박스에 따라 확인 버튼 활성/비활성
-    agreeChk.addEventListener('change', () => {
-      infoOk.disabled = !agreeChk.checked;
-    });
+    // 동의 체크 변경 시에도 검증(경고 노출은 확인 클릭 이후에만)
+    agreeChk.addEventListener('change', () => validateContactFields(false));
     // 모달 취소
     infoCancel.addEventListener('click', () => closeInfoModal());
     infoModal.querySelector('.backdrop').addEventListener('click', () => closeInfoModal());
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (infoModal.classList.contains('open')) closeInfoModal(); } });
-    // 모달 확인 → 유효성 검사 후 업로드 실행
-    infoOk.addEventListener('click', () => {
+    function validateContactFields(showErrors = false) {
       const email = (infoEmail?.value || '').trim();
       const phone = (infoPhone?.value || '').trim();
-      if (!agreeChk.checked) { alert('동의서에 동의해 주세요.'); return; }
-      if (!email || !phone) { alert('이메일과 전화번호를 입력해주세요.'); return; }
+      // 간단한 이메일/전화 검증
+      const emailOk = /.+@.+\..+/.test(email);
+      const phoneOk = phone.length >= 7;
+      const fileOk = currentMode === 'draw' ? true : !!selectedFile;
+      if (showErrors) {
+        infoEmail.classList.toggle('invalid', !emailOk);
+        infoPhone.classList.toggle('invalid', !phoneOk);
+        if (currentMode === 'upload' && fileErr) fileErr.classList.toggle('show', !fileOk);
+      } else {
+        infoEmail.classList.remove('invalid');
+        infoPhone.classList.remove('invalid');
+        if (fileErr) fileErr.classList.remove('show');
+      }
+      const emailErr = document.getElementById('emailErr');
+      const phoneErr = document.getElementById('phoneErr');
+      const agreeErr = document.getElementById('agreeErr');
+      if (emailErr) emailErr.classList.toggle('show', showErrors && !emailOk);
+      if (phoneErr) phoneErr.classList.toggle('show', showErrors && !phoneOk);
+      // 확인 버튼 비활성화는 하지 않음: 클릭 시 경고 표출을 위해 항상 활성화
+      if (agreeErr) agreeErr.classList.toggle('show', showErrors && !agreeChk.checked);
+      return { email, phone, emailOk, phoneOk, fileOk };
+    }
+    // 입력/포커스아웃 시 실시간 검증
+    infoEmail.addEventListener('input', () => validateContactFields(false));
+    infoPhone.addEventListener('input', () => validateContactFields(false));
+    infoEmail.addEventListener('blur', () => validateContactFields(false));
+    infoPhone.addEventListener('blur', () => validateContactFields(false));
+    agreeChk.addEventListener('change', () => validateContactFields(false));
+    // 모달 확인 → 유효성 검사 후 업로드 실행
+    infoOk.addEventListener('click', () => {
+      const { email, phone, emailOk, phoneOk, fileOk } = validateContactFields(true);
+      if (!agreeChk.checked) { document.getElementById('agreeErr')?.classList.add('show'); alert('동의서에 동의해 주세요.'); return; }
+      if (!emailOk) { alert('유효한 이메일을 입력해주세요.'); infoEmail.focus(); return; }
+      if (!phoneOk) { alert('유효한 전화번호를 입력해주세요.'); infoPhone.focus(); return; }
+      if (currentMode === 'upload' && !fileOk) { alert('업로드할 이미지를 선택해주세요.'); return; }
       closeInfoModal();
-      uploadDrawing(email, phone);
+      if (currentMode === 'upload' && selectedFile) {
+        uploadPhoto(email, phone, selectedFile);
+      } else {
+        uploadDrawing(email, phone);
+      }
     });
 
+    // 시작 화면 동작
+    startOnlineBtn?.addEventListener('click', () => {
+      startScreen?.parentNode?.removeChild(startScreen);
+    });
+    startUploadBtn?.addEventListener('click', () => {
+      startScreen?.parentNode?.removeChild(startScreen);
+      openInfoModal('upload');
+    });
+    // 완료 모달 닫기 동작
+    successCloseBtn?.addEventListener('click', () => closeSuccessModal());
+    successModal?.querySelector('.backdrop')?.addEventListener('click', () => closeSuccessModal());
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (successModal?.classList.contains('open')) closeSuccessModal(); } });
+
+    // 파일 선택 동작
+    pickFromGalleryBtn?.addEventListener('click', () => fileGallery?.click());
+    takePhotoBtn?.addEventListener('click', () => fileCamera?.click());
+    function handlePickedFile(file) {
+      selectedFile = file || null;
+      if (fileInfo) fileInfo.textContent = file ? `${file.name} (${Math.round(file.size/1024)} KB)` : '선택된 파일 없음';
+      if (file && fileErr) fileErr.classList.remove('show');
+    }
+    fileGallery?.addEventListener('change', (e) => handlePickedFile(e.target.files?.[0]));
+    fileCamera?.addEventListener('change', (e) => handlePickedFile(e.target.files?.[0]));
+
     /* ===== 포인터 이벤트로 입력 좌표 수집 ===== */
+    /* ===== 네비게이션(이동/핀치) & 그리기 입력 처리 ===== */
+    let isSpacePanning = false;
+    let isPanning = false;
+    let panStartX = 0, panStartY = 0;
+    let panStartTx = 0, panStartTy = 0;
+    const activePointers = new Map(); // pointerId -> { x, y }
+    let isPinching = false;
+    let pinchStart = null; // { distance, centerX, centerY, scale, tx, ty, worldCx, worldCy }
+
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { isSpacePanning = true; } });
+    window.addEventListener('keyup', (e) => { if (e.code === 'Space') { isSpacePanning = false; } });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const factor = Math.exp((-e.deltaY) * 0.001);
+      zoomAt(cx, cy, factor);
+    }, { passive: false });
+
+    function startPan(e) {
+      isPanning = true;
+      const rect = canvas.getBoundingClientRect();
+      panStartX = e.clientX - rect.left;
+      panStartY = e.clientY - rect.top;
+      panStartTx = viewTranslateX;
+      panStartTy = viewTranslateY;
+    }
+    function updatePan(e) {
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const dx = cx - panStartX;
+      const dy = cy - panStartY;
+      setView(viewScale, panStartTx + dx, panStartTy + dy);
+    }
+    function endPan() { isPanning = false; }
+
+    function getPointersCenterAndDistance() {
+      const pts = Array.from(activePointers.values());
+      if (pts.length < 2) return null;
+      const [p1, p2] = pts;
+      const centerX = (p1.x + p2.x) / 2;
+      const centerY = (p1.y + p2.y) / 2;
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const distance = Math.hypot(dx, dy);
+      return { centerX, centerY, distance };
+    }
+
     canvas.addEventListener('pointerdown', (e) => {
-      // 사이즈 팝오버가 열려 있으면 우선 닫고, 이번 입력은 그리기로 처리하지 않음
+      // 사이즈 팝오버가 열려 있으면 닫기만 하고 종료
       if (sizePopover.classList.contains('open')) {
         hideSizePopover();
         e.preventDefault();
         return;
       }
+      canvas.setPointerCapture?.(e.pointerId);
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      activePointers.set(e.pointerId, { x: px, y: py });
+
+      // 2손가락 이상이면 핀치 시작
+      if (activePointers.size >= 2) {
+        isPinching = true;
+        drawing = false; // 드로잉 취소
+        points = [];
+        const stat = getPointersCenterAndDistance();
+        if (stat) {
+          const { centerX, centerY, distance } = stat;
+          const world = screenToWorld(centerX, centerY);
+          pinchStart = {
+            distance,
+            centerX,
+            centerY,
+            scale: viewScale,
+            tx: viewTranslateX,
+            ty: viewTranslateY,
+            worldCx: world[0],
+            worldCy: world[1]
+          };
+        }
+        return;
+      }
+
+      // 마우스: 스페이스 누르거나 중클릭이면 이동
+      if (e.pointerType === 'mouse' && (isSpacePanning || e.button === 1)) {
+        startPan(e);
+        return;
+      }
+
+      // 그리기 시작 (월드 좌표로 저장)
       drawing = true;
-      points = [[e.offsetX, e.offsetY, e.pressure]];
-      // 새 스트로크를 시작하면 redo 스택 초기화
+      const [wx, wy] = screenToWorld(px, py);
+      points = [[wx, wy, e.pressure]];
       undoneStrokes.length = 0;
       render();
     });
 
     canvas.addEventListener('pointermove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      if (activePointers.has(e.pointerId)) {
+        activePointers.set(e.pointerId, { x: px, y: py });
+      }
+
+      if (isPinching) {
+        const stat = getPointersCenterAndDistance();
+        if (!stat || !pinchStart) return;
+        const { centerX, centerY, distance } = stat;
+        const factor = distance / (pinchStart.distance || 1);
+        const newScale = clamp(pinchStart.scale * factor, MIN_SCALE, MAX_SCALE);
+        // 중심점이 시작 대비 이동할 수 있으므로, 현재 중심 스크린 좌표에서 월드 중심을 고정
+        const newTx = centerX - pinchStart.worldCx * newScale;
+        const newTy = centerY - pinchStart.worldCy * newScale;
+        setView(newScale, newTx, newTy);
+        return;
+      }
+
+      if (isPanning) {
+        updatePan(e);
+        return;
+      }
+
       if (!drawing) return;
-      points.push([e.offsetX, e.offsetY, e.pressure]);
+      const [wx, wy] = screenToWorld(px, py);
+      points.push([wx, wy, e.pressure]);
       render();
     });
 
-    canvas.addEventListener('pointerup', () => {
+    function finishStroke() {
       if (!drawing) return;
       drawing = false;
-      // 현재 포인트 복사하여 저장
-      strokes.push({ 
-        points: [...points], 
-        color: isEraser ? 'eraser' : currentColor, 
+      strokes.push({
+        points: [...points],
+        color: isEraser ? 'eraser' : currentColor,
         size: currentSize,
-        isEraser: isEraser 
+        isEraser: isEraser
       });
       points = [];
       render();
+    }
+
+    canvas.addEventListener('pointerup', (e) => {
+      activePointers.delete(e.pointerId);
+      if (isPinching) {
+        if (activePointers.size < 2) { isPinching = false; pinchStart = null; }
+        return;
+      }
+      if (isPanning) { endPan(); return; }
+      finishStroke();
+    });
+    canvas.addEventListener('pointercancel', (e) => {
+      activePointers.delete(e.pointerId);
+      isPinching = false; pinchStart = null;
+      if (isPanning) endPan();
+      if (drawing) { drawing = false; points = []; render(); }
     });
 
     /* ===== 렌더링 함수 ===== */
     function render() {
+      // 전체 캔버스 초기화
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // 보기 변환 적용
+      ctx.setTransform(viewScale, 0, 0, viewScale, viewTranslateX, viewTranslateY);
 
       // 저장된 스트로크 그리기
       strokes.forEach(s => drawStroke(s.points, s.color, s.size, s.isEraser));
@@ -1164,6 +1552,8 @@
       if (drawing && points.length) {
         drawStroke(points, currentColor, currentSize, isEraser);
       }
+      // 배경 SVG에도 동일 변환 적용
+      applyBgTransform();
     }
 
     function drawStroke(pts, color, size, isEraser = false) {
@@ -1193,6 +1583,28 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
+    // 내보내기용: 특정 컨텍스트에 그리기(뷰 변환 없이)
+    function drawStrokeToContext(targetCtx, pts, color, size, isEraser = false) {
+      const stroke = getStroke(pts, { size, thinning: 0.6 });
+      if (!stroke.length) return;
+      if (isEraser) {
+        targetCtx.globalCompositeOperation = 'destination-out';
+        targetCtx.fillStyle = 'rgba(0,0,0,1)';
+      } else {
+        targetCtx.globalCompositeOperation = 'source-over';
+        targetCtx.fillStyle = color;
+      }
+      targetCtx.beginPath();
+      targetCtx.moveTo(stroke[0][0], stroke[0][1]);
+      for (let i = 1; i < stroke.length; i++) {
+        const [x, y] = stroke[i];
+        targetCtx.lineTo(x, y);
+      }
+      targetCtx.closePath();
+      targetCtx.fill();
+      targetCtx.globalCompositeOperation = 'source-over';
+    }
+
     function resize() {
       // 1) 전체 화면 캔버스 버퍼 크기 갱신 (스타일 크기는 CSS로 고정)
       const vp = getViewportSize();
@@ -1216,7 +1628,13 @@
         bg.style.top = `${marginTop}px`;
         bg.style.width = `${boxW}px`;
         bg.style.height = `${boxH}px`;
+        // 스케일 보정용 기준(left/top) 저장
+        bgBaseLeft = marginX;
+        bgBaseTop = marginTop;
       }
+      // 리사이즈 후에도 현재 보기 변환 유지
+      applyBgTransform();
+      render();
     }
 
     // 초기 팔레트 활성 색상 지정
