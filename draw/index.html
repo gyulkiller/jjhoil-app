@@ -738,6 +738,7 @@
       viewTranslateY = ty;
       applyBgTransform();
       render();
+      scheduleSave();
     }
     function zoomAt(canvasX, canvasY, factor) {
       const newScale = clamp(viewScale * factor, MIN_SCALE, MAX_SCALE);
@@ -770,6 +771,7 @@
       // 프리셋 활성화 표시
       const nearest = presetSizes.reduce((a, b) => Math.abs(b - currentSize) < Math.abs(a - currentSize) ? b : a, presetSizes[0]);
       Array.from(sizePresetsEl.children).forEach((btn) => btn.classList.toggle('active', Number(btn.getAttribute('data-size')) === nearest));
+      scheduleSave();
     }
     sizeSlider.addEventListener('input', (e) => {
       currentSize = Number(e.target.value);
@@ -833,6 +835,7 @@
       eraserBtn.classList.remove('active');
       sizePopover.classList.remove('eraser-mode');
       showSizePopover(brushBtn);
+      scheduleSave();
     });
 
     eraserBtn.addEventListener('click', () => {
@@ -841,6 +844,7 @@
       brushBtn.classList.remove('active');
       sizePopover.classList.add('eraser-mode');
       showSizePopover(eraserBtn);
+      scheduleSave();
     });
 
     // 팝오버 바깥 클릭 시 닫기
@@ -859,6 +863,7 @@
       currentColor = e.target.value;
       updateCurrentColorDot(currentColor);
       paletteEl.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
+      scheduleSave();
     });
 
     // 기본 팔레트 스와치 클릭
@@ -1123,6 +1128,7 @@
       paletteEl.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
       target.classList.add('active');
       updateCurrentColorDot(currentColor);
+      scheduleSave();
     });
 
     // 고급 모드는 레인보우 버튼을 통해 진입
@@ -1131,6 +1137,7 @@
       if (strokes.length) {
         undoneStrokes.push(strokes.pop());
         render();
+        scheduleSave();
       }
     });
 
@@ -1138,6 +1145,7 @@
       if (undoneStrokes.length) {
         strokes.push(undoneStrokes.pop());
         render();
+        scheduleSave();
       }
     });
 
@@ -1148,6 +1156,7 @@
       strokes.length = 0;
       undoneStrokes.length = 0;
       render();
+      scheduleSave();
     });
 
     /* ===== 저장(업로드) 기능 ===== */
@@ -1563,6 +1572,7 @@
       });
       points = [];
       render();
+      scheduleSave();
     }
 
     canvas.addEventListener('pointerup', (e) => {
@@ -1599,6 +1609,85 @@
       // 배경 SVG에도 동일 변환 적용
       applyBgTransform();
     }
+
+    /* ===== 자동 저장/복원 ===== */
+    const AUTOSAVE_KEY = 'onlyu_draw_autosave_v1';
+    let saveTimer = null;
+    function scheduleSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistState, 250);
+    }
+    function persistState() {
+      try {
+        const state = {
+          strokes,
+          undoneStrokes,
+          currentColor,
+          currentSize,
+          isEraser,
+          view: { scale: viewScale, tx: viewTranslateX, ty: viewTranslateY }
+        };
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+      } catch (e) { console.warn('autosave failed', e); }
+    }
+    function restoreState() {
+      try {
+        const raw = localStorage.getItem(AUTOSAVE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (Array.isArray(state?.strokes)) {
+          strokes.length = 0;
+          state.strokes.forEach(s => {
+            if (s && Array.isArray(s.points)) {
+              strokes.push({
+                points: s.points.map(p => [Number(p[0]), Number(p[1]), Number(p[2] || 0.5)]),
+                color: (s.color === 'eraser' || typeof s.color === 'string') ? s.color : '#000000',
+                size: Number(s.size) || 8,
+                isEraser: Boolean(s.isEraser)
+              });
+            }
+          });
+        }
+        if (Array.isArray(state?.undoneStrokes)) {
+          undoneStrokes.length = 0;
+          state.undoneStrokes.forEach(s => {
+            if (s && Array.isArray(s.points)) {
+              undoneStrokes.push({
+                points: s.points.map(p => [Number(p[0]), Number(p[1]), Number(p[2] || 0.5)]),
+                color: (s.color === 'eraser' || typeof s.color === 'string') ? s.color : '#000000',
+                size: Number(s.size) || 8,
+                isEraser: Boolean(s.isEraser)
+              });
+            }
+          });
+        }
+        if (typeof state?.currentColor === 'string') {
+          currentColor = state.currentColor;
+          colorPicker.value = currentColor;
+          updateCurrentColorDot(currentColor);
+        }
+        if (typeof state?.currentSize === 'number') {
+          currentSize = state.currentSize;
+          sizeSlider.value = String(currentSize);
+          syncSizePreview();
+        }
+        if (typeof state?.isEraser === 'boolean') {
+          isEraser = state.isEraser;
+          brushBtn.classList.toggle('active', !isEraser);
+          eraserBtn.classList.toggle('active', isEraser);
+          sizePopover.classList.toggle('eraser-mode', isEraser);
+        }
+        if (state?.view && typeof state.view.scale === 'number') {
+          setView(state.view.scale, Number(state.view.tx)||0, Number(state.view.ty)||0);
+        } else {
+          render();
+        }
+      } catch (e) { console.warn('restore failed', e); }
+    }
+    // 첫 진입 시 복원 시도
+    restoreState();
+    // 페이지 숨김/종료 시점에도 한 번 더 저장
+    window.addEventListener('beforeunload', persistState);
 
     function drawStroke(pts, color, size, isEraser = false) {
       const stroke = getStroke(pts, { size, thinning: 0.6 });
