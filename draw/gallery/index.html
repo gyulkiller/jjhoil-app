@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>ART</title>
-    <meta name="description" content="최근 업로드된 드로잉을 애플 홈페이지 같은 미니멀 디자인으로 감상하세요." />
+    <meta name="description" content="Enjoy the latest drawings in a minimalist Apple-like design." />
 
     <link rel="preconnect" href="https://tally-to-d1.gyulkiller.workers.dev" crossorigin />
     <style>
@@ -232,6 +232,7 @@
         font-size: 13px;
       }
     </style>
+    <script src="../../i18n.js"></script>
   </head>
   <body>
     <header class="nav" role="banner">
@@ -242,8 +243,8 @@
         </span>
       </div>
       <div class="nav-actions">
-        <a class="btn" href="../index.html">그림 그리러 가기</a>
-        <button id="refreshBtn" class="btn" type="button">새로고침</button>
+        <a class="btn" href="../index.html">Go to drawing</a>
+        <button id="refreshBtn" class="btn" type="button">Refresh</button>
       </div>
     </header>
 
@@ -261,7 +262,7 @@
           <!-- Skeletons (initial) -->
         </div>
       </div>
-      <div class="muted" id="countLabel">불러오는 중…</div>
+      <div class="muted" id="countLabel">Fetching…</div>
     </main>
 
     <script>
@@ -291,7 +292,7 @@
           holder.innerHTML = `
             <div class="skeleton" aria-hidden="true"></div>
             <div class="card-footer">
-              <span>로딩 중…</span>
+              <span>Loading…</span>
               <span></span>
             </div>
           `;
@@ -306,7 +307,7 @@
         if (!items || items.length === 0) {
           const empty = document.createElement('p');
           empty.className = 'section muted';
-          empty.textContent = '표시할 이미지가 없습니다.';
+          empty.textContent = 'No images to display.';
           gridEl.appendChild(empty);
           return;
         }
@@ -322,7 +323,7 @@
           const img = document.createElement('img');
           img.className = 'thumb';
           img.src = it.url;
-          img.alt = `그림 #${order}`;
+          img.alt = `Artwork #${order}`;
           img.loading = 'lazy';
           img.decoding = 'async';
           if (idx < 4) {
@@ -360,22 +361,22 @@
       }
 
       async function fetchItems() {
-        countLabel.textContent = '불러오는 중…';
+        countLabel.textContent = 'Fetching…';
         createSkeletons();
         try {
           const res = await fetch(API_URL, { cache: 'no-store' });
-          if (!res.ok) throw new Error('네트워크 오류');
+          if (!res.ok) throw new Error('Network error');
           const data = await res.json();
           const items = Array.isArray(data?.items) ? data.items : [];
-          countLabel.textContent = `${items.length}개 결과`;
+          countLabel.textContent = `${items.length} results`;
           renderItems(items);
         } catch (err) {
           console.error(err);
-          countLabel.textContent = '불러오기 실패';
+          countLabel.textContent = 'Fetch failed';
           gridEl.innerHTML = '';
           const errBox = document.createElement('div');
           errBox.className = 'section';
-          errBox.innerHTML = '<p class="muted">데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>';
+          errBox.innerHTML = '<p class="muted">Failed to fetch data. Please try again later.</p>';
           gridEl.appendChild(errBox);
         }
       }
@@ -389,7 +390,7 @@
         wrap.setAttribute('role', 'dialog');
         wrap.setAttribute('aria-modal', 'true');
         wrap.innerHTML = `
-          <button class="close" aria-label="닫기">닫기</button>
+          <button class="close" aria-label="Close">Close</button>
           <img src="${src}" alt="${label}" />
         `;
         const close = () => {

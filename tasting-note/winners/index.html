@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Winners</title>
+    <script src="../../i18n.js"></script>
     <meta name="theme-color" content="#0b0b0b" />
     <style>
       :root {
@@ -281,24 +282,24 @@
           <h1>Korean Sesame Oil Winners List</h1>
         </div>
         <div class="meta">
-          <span class="pill" id="next-draw-pill">다음 추첨까지 —</span>
+          <span class="pill" id="next-draw-pill">Until next draw —</span>
         </div>
       </header>
 
       <div class="grid">
         <section class="card">
           <div id="hourly" class="group" aria-live="polite"></div>
-          <div id="winners-empty" class="empty" style="display:none;">해당 시간대 당첨자가 없습니다.</div>
+          <div id="winners-empty" class="empty" style="display:none;">No winners for this hour.</div>
         </section>
       </div>
 
       <footer>
         <div class="refresh">
-          <button id="refresh-btn" type="button" title="새로고침">새로고침</button>
-          <span class="hint">1분마다 자동 새로고침됩니다.</span>
+          <button id="refresh-btn" type="button" title="Refresh">Refresh</button>
+          <span class="hint">Auto refreshes every minute.</span>
         </div>
         <div>
-          <span class="hint">표시 시간은 브라우저 로컬 시간대입니다.</span>
+          <span class="hint">Times are shown in your local timezone.</span>
         </div>
       </footer>
     </div>
@@ -437,11 +438,11 @@
         return nextTopOfHourLocal();
       }
       function formatRemain(ms) {
-        if (ms <= 0) return '곧 추첨';
+        if (ms <= 0) return I18N.copy.winners.soon[I18N.locale];
         const total = Math.floor(ms / 1000);
         const m = Math.floor(total / 60);
         const s = total % 60;
-        return `${m}분 ${String(s).padStart(2, '0')}초`;
+        return I18N.copy.winners.remainFmt(m, s, I18N.locale);
       }
       function startCountdown(target) {
         if (!$nextDraw) return;
@@ -449,7 +450,7 @@
         const update = () => {
           const now = Date.now();
           const ms = target.getTime() - now;
-          $nextDraw.textContent = `다음 추첨까지 ${formatRemain(ms)}`;
+          $nextDraw.textContent = `${I18N.copy.winners.nextDrawPrefix[I18N.locale]} ${formatRemain(ms)}`;
         };
         update();
         countdownTimer = setInterval(update, 1000);

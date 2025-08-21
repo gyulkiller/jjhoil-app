@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -253,6 +253,10 @@
       border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     }
+    /* 성공 모달 내 검은 레이어 */
+    #successModal .success-layer { background: rgba(0,0,0,0.9); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    #successModal .success-note-title { color: #fff; font-weight: 700; font-size: 14px; }
+    #successModal .success-note-time { color: #9fc9ff; font-size: 13px; }
     .progress-wrap { width: min(360px, 70vw); height: 14px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
     .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #9fc9ff, #0a84ff); }
     .progress-text { margin-top: 8px; text-align: center; font-size: 13px; color: #333; }
@@ -445,23 +449,24 @@
       .tour-actions button.primary { background: #0a84ff; color: #fff; border-color: transparent; }
     }
   </style>
+  <script src="../i18n.js"></script>
 </head>
 <body>
   <!-- 시작 선택 화면 -->
-  <div id="startScreen" aria-label="시작 선택">
+  <div id="startScreen" aria-label="Start selection">
     <div class="card">
-      <div class="title">한 단어로 시작해 이야기를 완성하세요.</div>
-      <div class="desc">한 방울로 시작해 한식을 완성하세요.</div>
+      <div class="title">Start with one word and complete your story.</div>
+      <div class="desc">Begin with a single drop and complete Korean cuisine.</div>
       <div class="actions">
-        <button id="startOnlineBtn" class="primary">온라인에서 그리기</button>
-        <button id="startUploadBtn">오프라인에서 그린 그림 업로드</button>
+        <button id="startOnlineBtn" class="primary">Draw online</button>
+        <button id="startUploadBtn">Upload an offline drawing</button>
       </div>
     </div>
   </div>
   <!-- === 그리기 툴바 === -->
   <div class="toolbar" id="toolbar">
-    <button id="brushBtn" title="붓" class="active" aria-label="Brush"><i data-lucide="paintbrush-2"></i><span class="color-dot" id="currentColorDot"></span></button>
-    <button id="eraserBtn" title="지우개" aria-label="Eraser"><i data-lucide="eraser"></i></button>
+    <button id="brushBtn" title="Brush" class="active" aria-label="Brush"><i data-lucide="paintbrush-2"></i><span class="color-dot" id="currentColorDot"></span></button>
+    <button id="eraserBtn" title="Eraser" aria-label="Eraser"><i data-lucide="eraser"></i></button>
     <div class="palette" id="palette">
       <!-- 2열 x 3 기본 컬러 구성: 검정, 블루, 그린 / 옐로, 레드, 레인보우 -->
       <button class="swatch active" data-color="#000000" style="--swatch-color:#000000" title="Black" aria-label="Black"></button>
@@ -471,13 +476,13 @@
       <button class="swatch" data-color="#ff3b30" style="--swatch-color:#ff3b30" title="Red" aria-label="Red"></button>
       <button class="swatch rainbow" data-color="advanced" title="Advanced colors" aria-label="Advanced colors"></button>
     </div>
-    <input type="color" id="colorPicker" value="#000000" title="색 선택(어드밴스드)" aria-label="Pick color advanced" />
+    <input type="color" id="colorPicker" value="#000000" title="Advanced color picker" aria-label="Pick color advanced" />
     <!-- 기본 툴바에서는 크기 슬라이더 제거 -->
-    <button id="undoBtn" title="뒤로 가기" aria-label="Undo"><i data-lucide="undo-2"></i></button>
-    <button id="redoBtn" title="앞으로 가기" aria-label="Redo"><i data-lucide="redo-2"></i></button>
-    <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
-    <button id="saveBtn" title="업로드" aria-label="업로드"><i data-lucide="upload-cloud"></i></button>
-    <a id="galleryBtn" title="갤러리로 이동" aria-label="Go to gallery" href="https://app.jjhoil.com/draw/gallery/" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.55);"><i data-lucide="image"></i></a>
+    <button id="undoBtn" title="Undo" aria-label="Undo"><i data-lucide="undo-2"></i></button>
+    <button id="redoBtn" title="Redo" aria-label="Redo"><i data-lucide="redo-2"></i></button>
+    <button id="clearBtn" title="Clear all" aria-label="Clear"><i data-lucide="trash-2"></i></button>
+    <button id="saveBtn" title="Upload" aria-label="Upload"><i data-lucide="upload-cloud"></i></button>
+    <a id="galleryBtn" title="Go to gallery" aria-label="Go to gallery" href="https://app.jjhoil.com/draw/gallery/" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.55);"><i data-lucide="image"></i></a>
   </div>
   <!-- 튜토리얼 오버레이 -->
   <div id="tourOverlay" aria-hidden="true">
@@ -486,8 +491,8 @@
     <div id="tourTooltip" role="dialog" aria-modal="false">
       <div class="tour-text" id="tourText"></div>
       <div class="tour-actions">
-        <button id="tourSkipBtn" type="button">건너뛰기</button>
-        <button id="tourNextBtn" type="button" class="primary">다음</button>
+        <button id="tourSkipBtn" type="button">Skip</button>
+        <button id="tourNextBtn" type="button" class="primary">Next</button>
       </div>
     </div>
   </div>
@@ -500,26 +505,26 @@
         <i style="margin-right:6px; color:#ff9800;" class="lucide lucide-alert-triangle" aria-hidden="true"></i>
         <span>이벤트 참여를 위해 <u>오일 테이스팅 참여 시 기재한 연락처와 동일한 연락처</u>를 입력해 주세요.</span>
       </div>
-      <div class="row"><label for="infoEmail">이메일</label><input id="infoEmail" type="email" placeholder="example@email.com" /></div>
-      <div class="error-msg" id="emailErr">유효한 이메일을 입력해주세요.</div>
-      <div class="row"><label for="infoPhone">전화번호</label><input id="infoPhone" type="tel" placeholder="010-0000-0000" /></div>
-      <div class="error-msg" id="phoneErr">유효한 전화번호를 입력해주세요.</div>
+      <div class="row"><label for="infoEmail">Email</label><input id="infoEmail" type="email" placeholder="example@email.com" /></div>
+      <div class="error-msg" id="emailErr">Please enter a valid email.</div>
+      <div class="row"><label for="infoPhone">Phone number</label><input id="infoPhone" type="tel" placeholder="010-0000-0000" /></div>
+      <div class="error-msg" id="phoneErr">Please enter a valid phone number.</div>
       <!-- 업로드 모드에서만 노출되는 파일 선택 영역 -->
       <div id="fileRow" class="row" style="display:none; grid-template-columns:auto 1fr; align-items:start;">
-        <label style="margin-top:6px;">이미지</label>
+        <label style="margin-top:6px;">Image</label>
         <div>
           <div class="file-actions">
-            <button id="pickFromGalleryBtn" type="button">갤러리에서 선택</button>
-            <button id="takePhotoBtn" type="button">사진 촬영</button>
+            <button id="pickFromGalleryBtn" type="button">Choose from gallery</button>
+            <button id="takePhotoBtn" type="button">Take photo</button>
           </div>
           <input id="fileGallery" type="file" accept="image/*" style="display:none" />
           <input id="fileCamera" type="file" accept="image/*" capture="environment" style="display:none" />
-          <div id="fileInfo" class="file-info">선택된 파일 없음</div>
+          <div id="fileInfo" class="file-info">No file selected</div>
         </div>
       </div>
-      <div class="error-msg" id="fileErr">이미지를 선택해주세요.</div>
+      <div class="error-msg" id="fileErr">Please select an image.</div>
       <div style="margin-top:8px; max-height: 36vh; overflow:auto; padding: 10px; border:1px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.7);">
-        <div style="font-weight:600; margin-bottom:6px;">이미지 사용 및 마케팅 활용 동의서</div>
+        <div style="font-weight:600; margin-bottom:6px;">Consent for Image Use and Marketing</div>
         <div style="font-size:13px; line-height:1.55; white-space:pre-wrap; color:#333;">
 <strong>[이미지 사용 및 마케팅 활용 동의서]</strong>
 
@@ -561,37 +566,50 @@
       </div>
       <div class="row" style="grid-template-columns:auto 1fr; align-items:center;">
         <input id="agreeChk" type="checkbox" style="width:18px; height:18px;" />
-        <label for="agreeChk">위 동의서 내용을 읽고 동의합니다.</label>
+        <label for="agreeChk">I have read and agree to the above.</label>
       </div>
-      <div class="error-msg" id="agreeErr">동의서에 동의해 주세요.</div>
+      <div class="error-msg" id="agreeErr">Please agree to the consent form.</div>
       <div class="actions">
-        <button id="infoCancel">취소</button>
-        <button id="infoOk" disabled>업로드</button>
+        <button id="infoCancel">Cancel</button>
+        <button id="infoOk" disabled>Upload</button>
       </div>
     </div>
   </div>
   <!-- 업로드 진행 모달 -->
-  <div id="uploadModal" role="dialog" aria-modal="true" aria-label="업로드 진행">
+  <div id="uploadModal" role="dialog" aria-modal="true" aria-label="Uploading">
     <div class="backdrop"></div>
     <div class="dialog">
-      <div style="font-weight:600; margin-bottom:8px;">업로드 중...</div>
+      <div style="font-weight:600; margin-bottom:8px;">Uploading...</div>
       <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
       <div id="progressText" class="progress-text">0%</div>
     </div>
   </div>
   <!-- 업로드 완료 모달 -->
-  <div id="successModal" role="dialog" aria-modal="true" aria-label="업로드 완료">
+  <div id="successModal" role="dialog" aria-modal="true" aria-label="Upload complete">
     <div class="backdrop"></div>
     <div class="dialog">
-      <div style="font-weight:700; margin-bottom:6px;">업로드가 완료되었습니다. 감사합니다!</div>
-      <div style="font-size:13px; color:#444; line-height:1.55;">당첨자 발표는 아래 페이지에서 확인하실 수 있습니다.<br/>
-        <a id="winnersLink" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener" style="color:#0a84ff; text-decoration:underline;">당첨자 발표 페이지 열기</a>
-      </div>
-      
-      <div class="actions" style="margin-top:12px; justify-content:flex-end;">
-        <button id="successCloseBtn" type="button">닫기</button>
-        <a id="successGoBtn" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener"><button type="button" style="background:#0a84ff; color:#fff; border-color:rgba(10,132,255,0.6);">당첨자 확인</button></a>
-        <a id="successGalleryBtn" href="https://app.jjhoil.com/draw/gallery/" target="_blank" rel="noopener"><button type="button">갤러리로 이동</button></a>
+      <div style="font-weight:700; margin-bottom:6px;">Upload complete. Thank you!</div>
+      <div class="success-layer">
+        <div class="success-note-title">Draws every hour</div>
+        <div style="font-size:13px; color:#d32f2f; margin-top:4px;">
+          Oil tasting participation is required to enter the event.<br>
+          If not participated, please visit the booth.
+        </div>
+        <div class="success-note-time" id="nextDrawCountdown">Calculating time to next draw...</div>
+        <div class="actions" style="margin-top:4px; flex-direction:column; gap:10px; align-items:stretch;">
+          <a id="successGoBtn" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener">
+            <button type="button" style="background:#0a84ff; color:#fff; border-color:rgba(10,132,255,0.6); display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
+              <i data-lucide="trophy"></i>
+              View winners
+            </button>
+          </a>
+          <a id="successGalleryBtn" href="https://app.jjhoil.com/draw/gallery/" target="_blank" rel="noopener">
+            <button type="button" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
+              <i data-lucide="image"></i>
+              Open gallery
+            </button>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -602,14 +620,14 @@
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
         <div class="color-preview" id="customColorPreview"></div>
         <div>
-          <div id="colorTitle" style="font-weight:600;">색상 선택</div>
-          <div style="font-size:12px; color:#666;">원하는 색을 조절하세요</div>
+          <div id="colorTitle" style="font-weight:600;">Choose color</div>
+          <div style="font-size:12px; color:#666;">Adjust the color as you like</div>
         </div>
       </div>
       <div class="tabs">
-        <button id="tabBtnSwatches" class="active">팔레트</button>
-        <button id="tabBtnSpectrum">스펙트럼</button>
-        <button id="tabBtnSliders">슬라이더</button>
+        <button id="tabBtnSwatches" class="active">Palette</button>
+        <button id="tabBtnSpectrum">Spectrum</button>
+        <button id="tabBtnSliders">Sliders</button>
       </div>
       <div id="tab-swatches" class="tab-panel active">
         <div id="swatchGrid" class="swatch-grid"></div>
@@ -618,9 +636,9 @@
         <div class="spectrum-wrap"><canvas id="spectrum" width="280" height="160"></canvas></div>
         <div class="row"><label for="hue2">Hue</label><input type="range" id="hue2" min="0" max="360" value="200"></div>
         <div class="picked-row">
-          <div class="picked-title">선택한 색</div>
+          <div class="picked-title">Picked colors</div>
           <div id="pickedList" class="picked-list"></div>
-          <button id="clearPicked" style="padding:6px 10px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.8);">초기화</button>
+          <button id="clearPicked" style="padding:6px 10px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.8);">Reset</button>
         </div>
       </div>
       <div id="tab-sliders" class="tab-panel">
@@ -630,8 +648,8 @@
         <div class="row"><label for="alpha">Opacity</label><input type="range" id="alpha" min="10" max="100" value="100"></div>
       </div>
       <div class="actions">
-        <button id="colorCancel">취소</button>
-        <button id="colorApply">적용</button>
+        <button id="colorCancel">Cancel</button>
+        <button id="colorApply">Apply</button>
       </div>
     </div>
   </div>
@@ -823,14 +841,14 @@
     /* ===== 툴바 튜토리얼 ===== */
     const TOUR_KEY = 'onlyu_draw_tour_v1_done';
     const tourSteps = [
-      { el: () => brushBtn, text: '붓을 선택해 그리기를 시작하세요.' },
-      { el: () => eraserBtn, text: '지우개로 잘못 그린 부분을 지울 수 있어요.' },
-      { el: () => paletteEl.querySelector('.swatch.rainbow') || paletteEl, text: '색상 선택이 가능합니다.' },
-      { el: () => undoBtn, text: '되돌리기' },
-      { el: () => redoBtn, text: '다시하기' },
-      { el: () => clearBtn, text: '모두 지우기' },
-      { el: () => galleryBtn, text: '영감이 필요하신가요? 다른 참가자의 작품을 볼 수 있어요.' },
-      { el: () => saveBtn, text: '업로드 버튼을 눌러 작품을 업로드하면 이벤트 참여가 완료됩니다.' }
+      { el: () => brushBtn, text: I18N.copy.draw.tourStepBrush[I18N.locale] },
+      { el: () => eraserBtn, text: I18N.copy.draw.tourStepEraser[I18N.locale] },
+      { el: () => paletteEl.querySelector('.swatch.rainbow') || paletteEl, text: I18N.copy.draw.tourStepColor[I18N.locale] },
+      { el: () => undoBtn, text: I18N.copy.draw.tourStepUndo[I18N.locale] },
+      { el: () => redoBtn, text: I18N.copy.draw.tourStepRedo[I18N.locale] },
+      { el: () => clearBtn, text: I18N.copy.draw.tourStepClear[I18N.locale] },
+      { el: () => galleryBtn, text: I18N.copy.draw.tourStepGallery[I18N.locale] },
+      { el: () => saveBtn, text: I18N.copy.draw.tourStepUpload[I18N.locale] }
     ];
     let tourIndex = 0;
     function positionTourFor(el) {
@@ -1428,6 +1446,34 @@
     }
     function openSuccessModal() { successModal?.classList.add('open'); }
     function closeSuccessModal() { successModal?.classList.remove('open'); }
+    // 다음 정시(매 시각 00분)까지 남은 시간을 계산해 표시
+    function startNextDrawCountdown() {
+      const el = document.getElementById('nextDrawCountdown');
+      if (!el) return;
+      function update() {
+        const now = new Date();
+        const next = new Date(now);
+        next.setMinutes(60, 0, 0); // 다음 정시
+        const diffMs = next.getTime() - now.getTime();
+        const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        const mm = String(m).padStart(2, '0');
+        const ss = String(s).padStart(2, '0');
+        el.textContent = `${I18N.copy.winners.nextDrawPrefix[I18N.locale]} ${I18N.copy.winners.remainFmt(mm, ss, I18N.locale)}`;
+      }
+      update();
+      // 1초 간격으로 갱신
+      const timerId = setInterval(update, 1000);
+      // 모달이 닫히면 타이머 정리
+      const observer = new MutationObserver(() => {
+        if (!successModal.classList.contains('open')) {
+          clearInterval(timerId);
+          observer.disconnect();
+        }
+      });
+      observer.observe(successModal, { attributes: true, attributeFilter: ['class'] });
+    }
 
     async function uploadDrawing(email, phone) {
       try {
@@ -1449,6 +1495,7 @@
         }
         setProgress(100);
         openSuccessModal();
+        startNextDrawCountdown();
         // 성공 후 필요 시 그리기 초기화
         // strokes.length = 0; undoneStrokes.length = 0; render();
       } catch (e) {
@@ -1478,6 +1525,7 @@
         }
         setProgress(100);
         openSuccessModal();
+        startNextDrawCountdown();
       } catch (e) {
         console.error(e);
         alert('업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
