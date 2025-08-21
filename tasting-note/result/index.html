@@ -272,9 +272,15 @@
             return Number.isFinite(value) ? value : null;
         }
 
+        // COLOR, BITTERNESS는 1~5 점수를 5~1로 반전하여 시각화
+        function invertForRadar(metric, value) {
+            if (!Number.isFinite(value)) return value;
+            return (metric === 'COLOR' || metric === 'BITTERNESS') ? (6 - value) : value;
+        }
+
         function buildData(row, oilCode) {
             const metricsOrder = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
-            return metricsOrder.map(metric => getMetricValue(row, oilCode, metric + '. '));
+            return metricsOrder.map(metric => invertForRadar(metric, getMetricValue(row, oilCode, metric + '. ')));
         }
 
         function renderTitle(row) {

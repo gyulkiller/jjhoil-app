@@ -89,6 +89,19 @@
       position: relative;
       transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
     }
+    /* 업로드(저장) 버튼 강조 스타일 */
+    .toolbar #saveBtn {
+      background: #ffd60a;
+      color: #111;
+      border-color: rgba(0,0,0,0.2);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    }
+    .toolbar #saveBtn:hover,
+    .toolbar #saveBtn:active {
+      background: #ffdf4d;
+      border-color: rgba(0,0,0,0.25);
+      transform: scale(1.08);
+    }
     .toolbar button:hover,
     .toolbar button:active {
       background: rgba(255,255,255,0.8);
@@ -463,7 +476,7 @@
     <button id="undoBtn" title="뒤로 가기" aria-label="Undo"><i data-lucide="undo-2"></i></button>
     <button id="redoBtn" title="앞으로 가기" aria-label="Redo"><i data-lucide="redo-2"></i></button>
     <button id="clearBtn" title="모두 지우기" aria-label="Clear"><i data-lucide="trash-2"></i></button>
-    <button id="saveBtn" title="저장" aria-label="Save"><i data-lucide="save"></i></button>
+    <button id="saveBtn" title="업로드" aria-label="업로드"><i data-lucide="upload-cloud"></i></button>
     <a id="galleryBtn" title="갤러리로 이동" aria-label="Go to gallery" href="https://app.jjhoil.com/draw/gallery/" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.55);"><i data-lucide="image"></i></a>
   </div>
   <!-- 튜토리얼 오버레이 -->
@@ -482,8 +495,11 @@
   <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
     <div class="backdrop"></div>
     <div class="dialog">
-      <div id="infoTitle" style="font-weight:600; margin-bottom:8px;">연락처 입력</div>
-      <div id="contactNotice" style="font-size:12px; color:#666; margin-bottom:8px;">이벤트 참여를 위해 오일 테이스팅 참여 시 기재한 연락처와 동일한 연락처를 입력해 주세요.</div>
+      <div id="infoTitle" style="font-weight:600; margin-bottom:8px;">작품 업로드를 위한 정보 입력</div>
+      <div id="contactNotice" style="font-size:15px; color:#c62828; margin-bottom:12px; font-weight:700; background: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 10px 14px; text-align:center;">
+        <i style="margin-right:6px; color:#ff9800;" class="lucide lucide-alert-triangle" aria-hidden="true"></i>
+        <span>이벤트 참여를 위해 <u>오일 테이스팅 참여 시 기재한 연락처와 동일한 연락처</u>를 입력해 주세요.</span>
+      </div>
       <div class="row"><label for="infoEmail">이메일</label><input id="infoEmail" type="email" placeholder="example@email.com" /></div>
       <div class="error-msg" id="emailErr">유효한 이메일을 입력해주세요.</div>
       <div class="row"><label for="infoPhone">전화번호</label><input id="infoPhone" type="tel" placeholder="010-0000-0000" /></div>
@@ -550,7 +566,7 @@
       <div class="error-msg" id="agreeErr">동의서에 동의해 주세요.</div>
       <div class="actions">
         <button id="infoCancel">취소</button>
-        <button id="infoOk" disabled>확인</button>
+        <button id="infoOk" disabled>업로드</button>
       </div>
     </div>
   </div>
@@ -814,7 +830,7 @@
       { el: () => redoBtn, text: '다시하기' },
       { el: () => clearBtn, text: '모두 지우기' },
       { el: () => galleryBtn, text: '영감이 필요하신가요? 다른 참가자의 작품을 볼 수 있어요.' },
-      { el: () => saveBtn, text: '저장 버튼을 눌러 작품을 업로드하세요.' }
+      { el: () => saveBtn, text: '업로드 버튼을 눌러 작품을 업로드하면 이벤트 참여가 완료됩니다.' }
     ];
     let tourIndex = 0;
     function positionTourFor(el) {
