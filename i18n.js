@@ -29,11 +29,11 @@
   const copy = {
     draw: {
       startTitle: {
-        en: 'Start with one word and complete your story.',
+        en: 'It Starts with a Word. You Finish the Story.',
         ko: '한 단어로 시작해 이야기를 완성하세요.'
       },
       startDesc: {
-        en: 'Begin with a single drop and complete Korean cuisine.',
+        en: 'It Starts with a Drop. You Finish the K-Food.',
         ko: '한 방울로 시작해 한식을 완성하세요.'
       },
       startOnline: { en: 'Draw online', ko: '온라인에서 그리기' },
@@ -57,7 +57,6 @@
       consentTitle: { en: 'Consent for Image Use and Marketing', ko: '이미지 사용 및 마케팅 활용 동의서' },
       consentBody: {
         en: (
-          '<strong>[Consent for Image Use and Marketing]</strong>\n\n' +
           'I fully understand and agree to the following:\n\n' +
           '<br><strong>1. Image Provision and Scope of Use</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
@@ -87,7 +86,6 @@
           '<br>I have read and understood the above, and I agree voluntarily.'
         ),
         ko: (
-          '<strong>[이미지 사용 및 마케팅 활용 동의서]</strong>\n\n' +
           '본인은 아래의 내용을 충분히 이해하고 동의합니다.\n\n' +
           '<br><strong>1. 이미지 제공 및 사용 범위</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
@@ -138,7 +136,7 @@
       reset: { en: 'Reset', ko: '초기화' },
       apply: { en: 'Apply', ko: '적용' },
       close: { en: 'Close', ko: '닫기' },
-      drawTitle: { en: 'Drawing with U', ko: 'Drawing with 유' },
+      drawTitle: { en: 'Drawing with 유', ko: 'Drawing with 유' },
       toolbarTitles: {
         brush: { en: 'Brush', ko: '붓' },
         eraser: { en: 'Eraser', ko: '지우개' },
@@ -230,10 +228,10 @@
     setText('#fileErr', copy.draw.fileErr[locale]);
     const imageLabel = document.querySelector('#fileRow label');
     if (imageLabel) imageLabel.textContent = copy.draw.imageLabel[locale];
-    // Consent
-    const consentTitle = document.querySelector('#infoModal .dialog > div[style*="margin-bottom:6px"]');
+    // Consent (prefer IDs if present for robustness)
+    const consentTitle = document.querySelector('#consentTitle') || document.querySelector('#infoModal .dialog > div[style*="margin-bottom:6px"]');
     if (consentTitle) consentTitle.textContent = copy.draw.consentTitle[locale];
-    const consentBody = document.querySelector('#infoModal .dialog > div[style*="white-space:pre-wrap"]');
+    const consentBody = document.querySelector('#consentBody') || document.querySelector('#infoModal .dialog > div[style*="white-space:pre-wrap"]');
     if (consentBody) consentBody.innerHTML = copy.draw.consentBody[locale];
     setText('label[for="agreeChk"]', copy.draw.agreeChk[locale]);
     setText('#agreeErr', copy.draw.agreeErr[locale]);
@@ -249,10 +247,8 @@
     const noteExtra = document.querySelector('#successModal .success-layer > div:nth-child(2)');
     if (noteExtra) noteExtra.innerHTML = `${copy.draw.eventNotice1[locale]}<br>${copy.draw.eventNotice2[locale]}`;
     setText('#nextDrawCountdown', copy.draw.nextDrawCalc[locale]);
-    const winnersBtn = document.querySelector('#successGoBtn button');
-    if (winnersBtn) winnersBtn.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.nodeValue = ' ' + copy.draw.viewWinners[locale]; });
-    const galleryBtn = document.querySelector('#successGalleryBtn button');
-    if (galleryBtn) galleryBtn.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.nodeValue = ' ' + copy.draw.goGallery[locale]; });
+    setText('#successGoText', copy.draw.viewWinners[locale]);
+    setText('#successGalleryText', copy.draw.goGallery[locale]);
     // Color modal
     setText('#colorTitle', copy.draw.colorSelectTitle[locale]);
     const colorDesc = document.querySelector('#colorTitle + div');

@@ -455,8 +455,8 @@
   <!-- 시작 선택 화면 -->
   <div id="startScreen" aria-label="Start selection">
     <div class="card">
-      <div class="title">Start with one word and complete your story.</div>
-      <div class="desc">Begin with a single drop and complete Korean cuisine.</div>
+      <div class="title">It Starts with a Word. You Finish the Story.</div>
+      <div class="desc">It Starts with a Drop. You Finish the K-Food.</div>
       <div class="actions">
         <button id="startOnlineBtn" class="primary">Draw online</button>
         <button id="startUploadBtn">Upload an offline drawing</button>
@@ -524,8 +524,8 @@
       </div>
       <div class="error-msg" id="fileErr">Please select an image.</div>
       <div style="margin-top:8px; max-height: 36vh; overflow:auto; padding: 10px; border:1px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.7);">
-        <div style="font-weight:600; margin-bottom:6px;">Consent for Image Use and Marketing</div>
-        <div style="font-size:13px; line-height:1.55; white-space:pre-wrap; color:#333;">
+        <div id="consentTitle" style="font-weight:600; margin-bottom:6px;">Consent for Image Use and Marketing</div>
+        <div id="consentBody" style="font-size:13px; line-height:1.55; white-space:pre-wrap; color:#333;">
 <strong>[이미지 사용 및 마케팅 활용 동의서]</strong>
 
 본인은 아래의 내용을 충분히 이해하고 동의합니다.
@@ -600,13 +600,13 @@
           <a id="successGoBtn" href="https://app.jjhoil.com/tasting-note/winners/" target="_blank" rel="noopener">
             <button type="button" style="background:#0a84ff; color:#fff; border-color:rgba(10,132,255,0.6); display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
               <i data-lucide="trophy"></i>
-              View winners
+              <span id="successGoText">View winners</span>
             </button>
           </a>
           <a id="successGalleryBtn" href="https://app.jjhoil.com/draw/gallery/" target="_blank" rel="noopener">
             <button type="button" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
               <i data-lucide="image"></i>
-              Open gallery
+              <span id="successGalleryText">Open gallery</span>
             </button>
           </a>
         </div>
@@ -1407,7 +1407,7 @@
       ectx.drawImage(strokesCanvas, 0, 0);
 
       const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/png'));
-      if (!blob) throw new Error('이미지 생성 실패');
+      if (!blob) throw new Error(I18N.copy.draw.errorImageGen[I18N.locale]);
       return blob;
     }
 
@@ -1420,7 +1420,7 @@
       if (infoOk) infoOk.disabled = false; // 항상 클릭 가능, 경고는 클릭 시 표출
       // 파일 관련 초기화
       selectedFile = null;
-      if (fileInfo) fileInfo.textContent = '선택된 파일 없음';
+      if (fileInfo) fileInfo.textContent = I18N.copy.draw.fileNone[I18N.locale];
       if (fileErr) fileErr.classList.remove('show');
       // 모드에 따른 파일 영역 노출
       if (fileRow) fileRow.style.display = (mode === 'upload') ? 'grid' : 'none';
@@ -1500,7 +1500,7 @@
         // strokes.length = 0; undoneStrokes.length = 0; render();
       } catch (e) {
         console.error(e);
-        alert('업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        alert(I18N.copy.draw.alertUploadError[I18N.locale]);
       } finally {
         saveBtn.disabled = false;
         closeUploadModal();
@@ -1528,7 +1528,7 @@
         startNextDrawCountdown();
       } catch (e) {
         console.error(e);
-        alert('업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        alert(I18N.copy.draw.alertUploadError[I18N.locale]);
       } finally {
         saveBtn.disabled = false;
         closeUploadModal();
@@ -1578,10 +1578,10 @@
     // 모달 확인 → 유효성 검사 후 업로드 실행
     infoOk.addEventListener('click', () => {
       const { email, phone, emailOk, phoneOk, fileOk } = validateContactFields(true);
-      if (!agreeChk.checked) { document.getElementById('agreeErr')?.classList.add('show'); alert('동의서에 동의해 주세요.'); return; }
-      if (!emailOk) { alert('유효한 이메일을 입력해주세요.'); infoEmail.focus(); return; }
-      if (!phoneOk) { alert('유효한 전화번호를 입력해주세요.'); infoPhone.focus(); return; }
-      if (currentMode === 'upload' && !fileOk) { alert('업로드할 이미지를 선택해주세요.'); return; }
+      if (!agreeChk.checked) { document.getElementById('agreeErr')?.classList.add('show'); alert(I18N.copy.draw.alertAgree[I18N.locale]); return; }
+      if (!emailOk) { alert(I18N.copy.draw.alertEmail[I18N.locale]); infoEmail.focus(); return; }
+      if (!phoneOk) { alert(I18N.copy.draw.alertPhone[I18N.locale]); infoPhone.focus(); return; }
+      if (currentMode === 'upload' && !fileOk) { alert(I18N.copy.draw.alertPickImage[I18N.locale]); return; }
       closeInfoModal();
       if (currentMode === 'upload' && selectedFile) {
         uploadPhoto(email, phone, selectedFile);
@@ -1609,7 +1609,7 @@
     takePhotoBtn?.addEventListener('click', () => fileCamera?.click());
     function handlePickedFile(file) {
       selectedFile = file || null;
-      if (fileInfo) fileInfo.textContent = file ? `${file.name} (${Math.round(file.size/1024)} KB)` : '선택된 파일 없음';
+      if (fileInfo) fileInfo.textContent = file ? `${file.name} (${Math.round(file.size/1024)} KB)` : I18N.copy.draw.fileNone[I18N.locale];
       if (file && fileErr) fileErr.classList.remove('show');
     }
     fileGallery?.addEventListener('change', (e) => handlePickedFile(e.target.files?.[0]));
