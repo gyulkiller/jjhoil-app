@@ -102,6 +102,7 @@
       }
 
       html, body { height: 100%; }
+      html { scroll-behavior: smooth; }
       body {
         margin: 0;
         color: var(--text);
@@ -286,18 +287,32 @@
       .faq .faq-content p { margin: 8px 0; }
       .faq .faq-content ul { margin: 6px 0 0 18px; padding: 0; }
       .faq .faq-content li { margin: 4px 0; }
+      #hourly { scroll-margin-top: 16px; }
+
+      /* Jump button to winners list */
+      .jump { display: flex; justify-content: center; }
+      .jump-btn { appearance: none; border: 1px solid var(--border); background: var(--glass); color: var(--text); border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow); transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease; }
+      .jump-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
+      .jump-btn .arrow { font-size: 14px; opacity: .85; animation: arrow-bounce .9s ease-in-out infinite alternate; }
+      @keyframes arrow-bounce { from { transform: translateY(-1px); } to { transform: translateY(3px); } }
     </style>
   </head>
   <body>
     <div class="container">
       <header>
         <div class="brand">
-          <h1>Korean Sesame Oil Winners List</h1>
-          <div class="faq" id="faq" hidden></div>
+          <h1>Korean Sesame Oil Winners List</h1>          
         </div>
         <div class="meta">
           <span class="pill" id="next-draw-pill">Until next draw —</span>
         </div>
+        <div class="jump">
+          <button id="jump-to-winners" type="button" class="jump-btn" title="See winners below">
+            <span class="arrow">▼</span>
+            <span class="label">See winners below</span>
+          </button>
+        </div>
+        <div class="faq" id="faq" hidden></div>
       </header>
 
       <div class="grid">
@@ -324,6 +339,7 @@
       // removed unused: const $drawPill
       const $nextDraw = document.getElementById('next-draw-pill');
       const $refresh = document.getElementById('refresh-btn');
+      const $jump = document.getElementById('jump-to-winners');
 
       function toLocalHM(dateISO) {
         const d = new Date(dateISO);
@@ -497,6 +513,14 @@
       }
 
       $refresh.addEventListener('click', () => load());
+      if ($jump) {
+        $jump.addEventListener('click', () => {
+          const target = document.getElementById('hourly');
+          if (target && typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
       load();
       setInterval(load, 60 * 1000);
     </script>
