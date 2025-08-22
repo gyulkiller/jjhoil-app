@@ -195,7 +195,7 @@
           { q: 'Q5. 상품은 무엇인가요?', a: '<strong>정준호 양심참기름 138, 167, 178 중 가장 선호하는 오일 1병(CAD 20 상당)</strong>을 받으실 수 있습니다. 오일 테이스팅 단계에서 가장 선호하는 오일을 지정하면, 그 오일이 당첨 상품으로 주어집니다.' },
           { q: 'Q6. 당첨은 어떻게 되나요?', a: '매 정각마다 오일별 3명씩, 총 9명이 뽑힙니다. <em>※ 단, 미수령자가 발생할 경우 실제 수량은 변동될 수 있습니다.</em>' },
           { q: 'Q7. 당첨되지 못했다면, 재도전 기회가 있나요?', a: (
-            '네! <a href="https://app.jjhoil.com/draw" target="_blank" rel="noopener">“유” 미션</a>에 참여하면 동일 회차에서도 추가 추첨권을 얻을 수 있고, 낙첨 시 다음 회차에도 재도전이 가능합니다.' +
+            '네! <a href="https://app.jjhoil.com/draw" target="_blank" rel="noopener">“유” 미션</a>에 참여하면 동일 회차에서도 추가 추첨권을 얻을 수 있고, 낙첨 시 다음 회차에도 재도전이 가능합니다.⚠️ 단, 한 번 당첨되신 분은 같은 회차에서 유 미션을 참여하셔도 중복 당첨은 불가합니다.' +
             '<ul>' +
             '  <li>11:17 오일 테이스팅 + 11:25 그림 2장 제출 → 12시 추첨: 기본 1장 + 추가 2장 = 총 3장</li>' +
             '  <li>12:00 낙첨 후 12:13 그림 2장 제출 → 13시 추첨: 총 2장</li>' +
@@ -226,7 +226,7 @@
           { q: 'Q5. What is the prize?', a: 'Winners receive one bottle of Jung Junho’s Conscience Sesame Oil — 138, 167, or 178 (approx. CAD 20 value). During tasting, you can choose your favorite oil, and if you win, that will be your prize.' },
           { q: 'Q6. How are winners selected?', a: 'Every hour, 3 winners per oil (9 in total). Note: The actual number of prizes may vary if there are unclaimed winners.' },
           { q: 'Q7. If I don’t win, can I try again?', a: (
-            'Yes! By joining the <a href="https://app.jjhoil.com/draw" target="_blank" rel="noopener">“유” mission</a>, you can get extra tickets in the same round, and even if you lose, you’ll have another chance in the next round.' +
+            'Yes! By joining the <a href="https://app.jjhoil.com/draw" target="_blank" rel="noopener">“유” mission</a>, you can get extra tickets in the same round, and even if you lose, you’ll have another chance in the next round. ⚠️ Please note: Once you win, you cannot win again, even if you join the “유” mission.' +
             '<ul>' +
             '  <li>11:17 oil tasting + 11:25 2 drawings → 12:00 draw: 3 tickets (1 base + 2 extra)</li>' +
             '  <li>12:00 not selected, then 12:13 2 drawings → 13:00 draw: 2 tickets</li>' +
