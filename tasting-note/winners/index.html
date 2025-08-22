@@ -291,8 +291,8 @@
 
       /* Jump button to winners list */
       .jump { display: flex; justify-content: center; }
-      .jump-btn { appearance: none; border: 1px solid var(--border); background: var(--glass); color: var(--text); border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow); transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease; }
-      .jump-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
+      .jump-btn { appearance: none; border: 1px solid rgba(0,0,0,0.15); background: linear-gradient(180deg, #ffe680 0%, #ffd54f 60%, #ffca28 100%); color: #111; border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 rgba(0,0,0,0.07), var(--shadow); transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; font-weight: 600; }
+      .jump-btn:hover { transform: translateY(-1px); border-color: rgba(0,0,0,0.22); background: linear-gradient(180deg, #ffdf66 0%, #ffcc3d 60%, #ffb300 100%); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
       .jump-btn .arrow { font-size: 14px; opacity: .85; animation: arrow-bounce .9s ease-in-out infinite alternate; }
       @keyframes arrow-bounce { from { transform: translateY(-1px); } to { transform: translateY(3px); } }
     </style>
