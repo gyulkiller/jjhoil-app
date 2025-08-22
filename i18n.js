@@ -213,7 +213,8 @@
             '  <li>오일 테이스팅: 테이스팅 플레이트를 직접 가져가서 참여하세요. 반납할 필요가 없으며, 플레이트는 나중에 파스타량 측정기로 활용할 수 있습니다.</li>' +
             '  <li>그림 그리기: ‘유’ 카드 1장과 색연필 1개를 직접 챙겨 그림을 제출하세요. 카드는 부스에 반납하지 않고 기념으로 가져가실 수 있습니다.</li>' +
             '</ul>'
-          ) }
+          ) },
+          { q: 'Q12. 제품은 어디서 구매할 수 있나요?', a: '현재는 한국에서만 판매 중이며, 캐나다 및 북미 지역 판매를 준비하고 있습니다. 이번 이벤트는 시장 조사와 현지 고객분들의 피드백을 듣기 위한 자리이니 많은 의견 부탁드립니다.' }
         ],
         en: [
           { q: 'Q1. How can I join?', a: 'Pick up a tasting plate, scan the QR code, and you’re in the draw.' },
@@ -243,7 +244,8 @@
             '  <li>Oil tasting mission: Pick up a tasting plate yourself. No need to return it — later it doubles as a pasta measurer.</li>' +
             '  <li>Express with 유 mission: Grab one “유” card and a colored pencil, then submit your drawing. You don’t have to return the card — feel free to keep it as a souvenir.</li>' +
             '</ul>'
-          ) }
+          ) },
+          { q: 'Q12. Where can I buy your products?', a: 'Currently available only in Korea. We are preparing for sales in Canada and North America, and this event is part of our market research. We’d love to hear your feedback!' }
         ]
       }
     },
