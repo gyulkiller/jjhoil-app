@@ -183,7 +183,69 @@
       soon: { en: 'Soon', ko: '곧 추첨' },
       remainFmt: (m, s, lang) => (lang === 'ko' ? `${m}분 ${String(s).padStart(2,'0')}초` : `${m}m ${String(s).padStart(2,'0')}s`),
       nextDrawPrefix: { en: 'Until next draw', ko: '다음 추첨까지' },
-      networkError: { en: 'Network error', ko: '네트워크 오류' }
+      networkError: { en: 'Network error', ko: '네트워크 오류' },
+      faq: {
+        ko: [
+          { q: 'Q1. 어떻게 참여하나요?', a: '현장에서 테이스팅 플레이트를 가져가 QR을 스캔하면 자동으로 추첨에 참여됩니다.' },
+          { q: 'Q2. 어린이도 참여할 수 있나요?', a: '네, 남녀노소 누구나 참여 가능합니다. 단, 당첨자 구분을 위해 참가자별로 고유한 이메일과 휴대폰 번호가 필요합니다. 미성년자의 경우 상품 수령은 보호자 동반을 권장합니다.' },
+          { q: 'Q3. 알레르기가 있어도 참여할 수 있나요?', a: '참깨 알레르기가 있으신 경우 오일 테이스팅 참여는 권장하지 않습니다.' },
+          { q: 'Q4. 참여하는 데 비용이 있나요?', a: '아니요, 무료로 참여 가능합니다.' },
+          { q: 'Q5. 상품은 무엇인가요?', a: '<strong>정준호 양심참기름 138, 167, 178 중 가장 선호하는 오일 1병(CAD 20 상당)</strong>을 받으실 수 있습니다. 오일 테이스팅 단계에서 가장 선호하는 오일을 지정하면, 그 오일이 당첨 상품으로 주어집니다.' },
+          { q: 'Q6. 당첨은 어떻게 되나요?', a: '매 정각마다 오일별 3명씩, 총 9명이 뽑힙니다. <em>※ 단, 미수령자가 발생할 경우 실제 수량은 변동될 수 있습니다.</em>' },
+          { q: 'Q7. 당첨되지 못했다면, 재도전 기회가 있나요?', a: (
+            '네! ‘유’ 미션에 참여하면 동일 회차에서도 추가 추첨권을 얻을 수 있고, 낙첨 시 다음 회차에도 재도전이 가능합니다.' +
+            '<ul>' +
+            '  <li>11:17 오일 테이스팅 + 11:25 그림 2장 제출 → 12시 추첨: 기본 1장 + 추가 2장 = 총 3장</li>' +
+            '  <li>12:00 낙첨 후 12:13 그림 2장 제출 → 13시 추첨: 총 2장</li>' +
+            '  <li>12:00 낙첨 후 13:31 그림 3장 제출 → 14시 추첨: 총 3장</li>' +
+            '</ul>'
+          ) },
+          { q: 'Q8. 당첨 수령은 어떻게 하나요?', a: (
+            '당첨자는 이메일 혹은 winners 페이지에서 확인 후, ⚠️ 30분 이내 부스에서 수령해야 합니다. ' +
+            '부득이할 경우 <a href="https://app.jjhoil.com/tasting-note/claim" target="_blank" rel="noopener">claim 폼</a>으로 유예 신청 또는 양보가 가능하며, 신청 없이 30분이 지나면 당첨은 취소됩니다. ' +
+            '저희가 해외에서 운영하는 관계로 수령에 제한이 있을 수 있으니 양해 부탁드립니다.'
+          ) },
+          { q: 'Q9. 상품을 집으로 배송해 주시나요?', a: '아니요, 상품은 현장에서만 수령 가능합니다.' },
+          { q: 'Q10. 당첨 후 30분 이내 미수령 시 취소되거나, 이전 회차 당첨자가 없으면?', a: '해당 상품은 자동으로 다음 추첨 회차에 추가됩니다.' },
+          { q: 'Q11. 이벤트는 어떻게 진행하나요?', a: (
+            '셀프 참여 이벤트입니다. 직원 안내 없이 자유롭게 진행하세요.' +
+            '<ul>' +
+            '  <li>오일 테이스팅: 테이스팅 플레이트를 직접 가져가서 참여하세요. 반납할 필요가 없으며, 플레이트는 나중에 파스타량 측정기로 활용할 수 있습니다.</li>' +
+            '  <li>그림 그리기: ‘유’ 카드 1장과 색연필 1개를 직접 챙겨 그림을 제출하세요. 카드는 부스에 반납하지 않고 기념으로 가져가실 수 있습니다.</li>' +
+            '</ul>'
+          ) }
+        ],
+        en: [
+          { q: 'Q1. How can I join?', a: 'Pick up a tasting plate, scan the QR code, and you’re in the draw.' },
+          { q: 'Q2. Can children join?', a: 'Yes, all ages are welcome. However, each entry requires a unique email and phone number per participant. For minors, we recommend claiming prizes with a guardian.' },
+          { q: 'Q3. Can I join if I have allergies?', a: 'If you have sesame allergies, tasting is not recommended.' },
+          { q: 'Q4. Is there any cost to join?', a: 'No, it’s free to join. (Free entry — no purchase required.)' },
+          { q: 'Q5. What is the prize?', a: 'Winners receive one bottle of Jung Junho’s Conscience Sesame Oil — 138, 167, or 178 (approx. CAD 20 value). During tasting, you can choose your favorite oil, and if you win, that will be your prize.' },
+          { q: 'Q6. How are winners selected?', a: 'Every hour, 3 winners per oil (9 in total). Note: The actual number of prizes may vary if there are unclaimed winners.' },
+          { q: 'Q7. If I don’t win, can I try again?', a: (
+            'Yes! By joining the “유” mission, you can get extra tickets in the same round, and even if you lose, you’ll have another chance in the next round.' +
+            '<ul>' +
+            '  <li>11:17 oil tasting + 11:25 2 drawings → 12:00 draw: 3 tickets (1 base + 2 extra)</li>' +
+            '  <li>12:00 not selected, then 12:13 2 drawings → 13:00 draw: 2 tickets</li>' +
+            '  <li>12:00 not selected, then 13:31 3 drawings → 14:00 draw: 3 tickets</li>' +
+            '</ul>'
+          ) },
+          { q: 'Q8. How do I claim my prize?', a: (
+            'Winners are announced via email or the winners page. Claim at the booth within 30 minutes ⚠️. ' +
+            'If not possible, use the <a href="https://app.jjhoil.com/tasting-note/claim" target="_blank" rel="noopener">claim form</a> for a grace period or to pass it on. ' +
+            'Unclamed after 30 minutes⚠️, your win will be canceled. As we are hosting from abroad, there may be limits — thank you for your understanding.'
+          ) },
+          { q: 'Q9. Do you ship prizes to my home?', a: 'No, prizes must be claimed on-site only.' },
+          { q: 'Q10. What if a prize is unclaimed within 30 minutes, or no winner appears?', a: 'The prize will automatically be added to the next draw.' },
+          { q: 'Q11. How does the event work?', a: (
+            'This is a self-service event. No staff guidance — please join freely.' +
+            '<ul>' +
+            '  <li>Oil tasting mission: Pick up a tasting plate yourself. No need to return it — later it doubles as a pasta measurer.</li>' +
+            '  <li>Express with 유 mission: Grab one “유” card and a colored pencil, then submit your drawing. You don’t have to return the card — feel free to keep it as a souvenir.</li>' +
+            '</ul>'
+          ) }
+        ]
+      }
     },
     tasting: {
       loading: { en: 'Loading…', ko: '로딩 중…' },
@@ -287,6 +349,20 @@
     setText('.refresh .hint', copy.winners.autoRefreshHint[locale]);
     const hint2 = document.querySelectorAll('.hint')[1];
     if (hint2) hint2.textContent = copy.winners.localTimeHint[locale];
+
+    // Render FAQ in detected locale
+    const faqWrap = document.getElementById('faq');
+    if (faqWrap && Array.isArray(copy.winners.faq[locale])) {
+      faqWrap.innerHTML = copy.winners.faq[locale]
+        .map(item => (
+          '<details>' +
+            `<summary>${item.q}</summary>` +
+            `<div class="faq-content">${item.a}</div>` +
+          '</details>'
+        ))
+        .join('');
+      faqWrap.hidden = false;
+    }
   }
 
   function applyOnTastingResultPage() {

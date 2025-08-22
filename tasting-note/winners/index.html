@@ -273,6 +273,19 @@
       .refresh button { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease; }
       .refresh button:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
       .refresh .hint { color: var(--muted); font-size: 12px; }
+
+      /* FAQ accordion */
+      .faq { width: 100%; max-width: 760px; margin-top: 8px; text-align: left; }
+      .faq details { border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04)); box-shadow: var(--shadow); }
+      .faq details + details { margin-top: 10px; }
+      .faq summary { list-style: none; cursor: pointer; padding: 12px 14px; font-weight: 600; letter-spacing: -0.01em; }
+      .faq summary::-webkit-details-marker { display: none; }
+      .faq summary::after { content: '\25BE'; float: right; transition: transform .15s ease; opacity: .8; }
+      .faq details[open] summary::after { transform: rotate(180deg); }
+      .faq .faq-content { padding: 0 14px 14px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+      .faq .faq-content p { margin: 8px 0; }
+      .faq .faq-content ul { margin: 6px 0 0 18px; padding: 0; }
+      .faq .faq-content li { margin: 4px 0; }
     </style>
   </head>
   <body>
@@ -280,6 +293,7 @@
       <header>
         <div class="brand">
           <h1>Korean Sesame Oil Winners List</h1>
+          <div class="faq" id="faq" hidden></div>
         </div>
         <div class="meta">
           <span class="pill" id="next-draw-pill">Until next draw —</span>
@@ -360,7 +374,9 @@
       function renderHourlySlots(drawISO, winners) {
         $hourly.innerHTML = '';
         const slots = buildLast24HourSlots();
-        const drawHour = drawISO ? new Date(drawISO) : null;
+        // 서버는 drawHourUtc(창 종료 정각)를 내려줌. 화면 버킷은 "창 시작 정각"으로 비교해야 함.
+        const drawHourEndUtc = drawISO ? new Date(drawISO) : null;
+        const drawWindowStartUtc = drawHourEndUtc ? new Date(drawHourEndUtc.getTime() - 60 * 60 * 1000) : null;
 
         // winners를 오일별로 카운트/대표자 선정
         const byOil = new Map();
@@ -382,7 +398,7 @@
           title.textContent = toLocalHM(slot.toISOString());
           block.appendChild(title);
 
-          if (drawHour && sameHour(slot, drawHour)) block.classList.add('latest');
+          if (drawWindowStartUtc && sameHour(slot, drawWindowStartUtc)) block.classList.add('latest');
 
           for (let i = 0; i < OILS.length; i++) {
             const o = OILS[i];
@@ -396,7 +412,7 @@
 
             const desc = document.createElement('div');
             desc.className = 'oil-desc';
-            if (drawHour && sameHour(slot, drawHour)) {
+            if (drawWindowStartUtc && sameHour(slot, drawWindowStartUtc)) {
               const info = byOil.get(o.id);
               if (info && info.count > 0) {
                 const first = info.first || {};
