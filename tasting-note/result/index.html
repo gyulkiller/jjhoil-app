@@ -171,51 +171,7 @@
         .header-pill.orange { background: #FF9800; color: #000; }
         .header-pill.red { background: #F44336; color: #000; }
 
-        /* Foods section */
-        .foods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-            width: 100%;
-            max-width: 900px;
-            margin-top: 24px;
-        }
-        .food-card {
-            border: 1px solid #eee;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            background: #fff;
-        }
-        .food-card-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        .swatch {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .badge-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .badge {
-            background: #f5f5f5;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 13px;
-        }
-        .food-reason {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #666;
-        }
+        
 
         /* Responsive tweaks */
         @media (max-width: 768px) {
@@ -228,9 +184,6 @@
             .header-text { font-size: 14px; }
             .chart-container { max-width: 100%; aspect-ratio: 1 / 1.15; }
             .center-image { width: 32px; height: 32px; }
-            .foods { grid-template-columns: 1fr; gap: 12px; }
-            .food-card { padding: 12px; }
-            .badge { font-size: 12px; padding: 5px 8px; }
         }
     </style>
 </head>
@@ -259,7 +212,7 @@
         const ctx = document.getElementById('radarChart').getContext('2d');
 
         
-        const BASE_URL = 'https://script.google.com/macros/s/AKfycbxcu8yCdOHfsr9s5IwmPNUxxOcXYrjmH3jX4NZkUOjkGkvXpU3JOz2lq_KWKEFMt8ku-A/exec';
+        const BASE_URL = 'https://script.google.com/macros/s/AKfycbx1snOHXwKoHK3hMLz66DeADRuLRLbpk7C1H3E5geedWTgU-20bpvpc-newG__VXQZ9BQ/exec';
         const urlParams = new URLSearchParams(window.location.search);
         const aParam = urlParams.get('a');
         const API_URL = BASE_URL + (aParam ? ('?a=' + encodeURIComponent(aParam)) : '');
@@ -285,11 +238,13 @@
         }
 
         function renderTitle(row) {
-            const title = document.getElementById('titleBanner');
-            if (!title) return;
-            const nameKey = Object.keys(row).find(k => k.includes('이름'));
+            const titleEl = document.getElementById('titleBanner');
+            if (!titleEl) return;
+            const nameKey = Object.keys(row).find(k => /이름/i.test(k) || /name/i.test(k));
             const userName = nameKey ? String(row[nameKey]).trim() : '';
-            title.textContent = I18N.copy.tasting.noteTitle(userName, I18N.locale);
+            const composed = userName ? `${userName}'s Oil Tasting Note` : 'Oil Tasting Note';
+            titleEl.textContent = composed;
+            try { document.title = composed; } catch {}
         }
 
         function createChart(datasets) {
@@ -378,13 +333,14 @@
         }
 
         function extractFoodSelections(row, oilCode) {
-            const baseMatcher = `참기름 ${oilCode}`;
+            const matchers = [`참기름 ${oilCode}`, `Sesame Oil ${oilCode}`];
             const selections = new Set();
 
             // 1) Boolean category answers in parentheses (우선 사용)
             let hasBoolean = false;
             Object.entries(row).forEach(([k, v]) => {
-                if (k.includes(baseMatcher) && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
+                const matchBase = matchers.some(m => k.includes(m));
+                if (matchBase && k.includes('(') && k.includes(')') && (v === true || v === 'TRUE')) {
                     hasBoolean = true;
                     const open = k.lastIndexOf('(');
                     const close = k.lastIndexOf(')');
@@ -413,9 +369,13 @@
 
             // 2) Consolidated string answer (불리언이 없을 때만 사용)
             const stringKey = Object.keys(row).find(k =>
-                k.includes(baseMatcher) &&
-                k.includes('가장 잘 어울린다고') &&
-                k.includes('무엇인가요?') &&
+                matchers.some(m => k.includes(m)) &&
+                (
+                    (k.includes('가장 잘 어울린다고') && k.includes('무엇인가요?')) ||
+                    k.includes('What kind of food') ||
+                    k.includes('goes best')
+                ) &&
+                k.includes('?') &&
                 !k.includes('? (')
             );
             if (stringKey && typeof row[stringKey] === 'string' && row[stringKey].trim().length > 0) {
@@ -429,17 +389,24 @@
         }
 
         function extractFoodReason(row, oilCode) {
-            const reasonKey = Object.keys(row).find(k => k.includes(`선택한 요리들이 참기름 ${oilCode}`));
+            const reasonKey = Object.keys(row).find(k => (
+                k.includes(`선택한 요리들이 참기름 ${oilCode}`) ||
+                (k.includes('Why do you think') && k.includes(`Sesame Oil ${oilCode}`))
+            ));
             const reason = reasonKey ? row[reasonKey] : '';
             return typeof reason === 'string' ? reason.trim() : '';
         }
 
         function getFoodFullAnswer(row, oilCode) {
-            const baseMatcher = `참기름 ${oilCode}`;
+            const matchers = [`참기름 ${oilCode}`, `Sesame Oil ${oilCode}`];
             const stringKey = Object.keys(row).find(k =>
-                k.includes(baseMatcher) &&
-                k.includes('가장 잘 어울린다고') &&
-                k.includes('무엇인가요?') &&
+                matchers.some(m => k.includes(m)) &&
+                (
+                    (k.includes('가장 잘 어울린다고') && k.includes('무엇인가요?')) ||
+                    k.includes('What kind of food') ||
+                    k.includes('goes best')
+                ) &&
+                k.includes('?') &&
                 !k.includes('? (')
             );
             if (stringKey && typeof row[stringKey] === 'string') {
@@ -567,6 +534,7 @@
                     createChart(datasets);
                     renderTitle(row);
                     renderHeaderLines(row);
+                    
                     hideLoader();
                     break;
                 } catch (e) {
