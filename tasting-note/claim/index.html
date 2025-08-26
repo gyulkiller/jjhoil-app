@@ -144,7 +144,22 @@
                     .then(function(data) {
                         // Expected shape now includes: { ok, identity, found, count, email, phone, name, latest }
                         if (data && data.ok === true && data.found === true && data.latest) {
-                            // Redirect with params: email, name, phone
+                            // If status is already finalized, show an English message instead of redirecting
+                            var status = (data.latest.claimStatus || '').toLowerCase();
+                            if (status === 'claimed') {
+                                showMessage('success', 'You have already claimed your prize.');
+                                return;
+                            }
+                            if (status === 'passed') {
+                                showMessage('success', 'You have already passed on this prize.');
+                                return;
+                            }
+                            if (status === 'extended') {
+                                showMessage('success', 'Your extension request has already been submitted.');
+                                return;
+                            }
+
+                            // Otherwise, redirect with params: email, name, phone
                             var target = new URL(TALLY_URL);
                             var emailParam = data.email || email || '';
                             var nameParam = data.name || '';
