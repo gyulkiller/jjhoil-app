@@ -767,6 +767,32 @@
     }
     setAppVhVar();
 
+    // 중앙 로고(viewBox)을 화면 중앙에 배치했을 때, 그 로고를 기준으로 ratio 배의
+    // 저장 박스(상하좌우 여백 포함)를 계산한다.
+    function computeFixedSaveBoxRect(ratio = 1.3) {
+      const vp = getViewportSize();
+      const bgEl = document.getElementById('bgSvg');
+      const vbParts = (bgEl?.getAttribute('viewBox') || '0 0 550 550').trim().split(/\s+/).map(Number);
+      const vbW = vbParts[2] || 550;
+      const vbH = vbParts[3] || 550;
+      const logoScale = Math.min(vp.width / (vbW * ratio), vp.height / (vbH * ratio));
+      const logoW = Math.round(vbW * logoScale);
+      const logoH = Math.round(vbH * logoScale);
+      const boxW  = Math.round(logoW * ratio);
+      const boxH  = Math.round(logoH * ratio);
+      const left  = Math.round((vp.width  - boxW) / 2);
+      const top   = Math.round((vp.height - boxH) / 2);
+      const logoLeft = Math.round((vp.width  - logoW) / 2);
+      const logoTop  = Math.round((vp.height - logoH) / 2);
+      return { vp, vbW, vbH, logoScale, logoW, logoH, boxW, boxH, left, top, logoLeft, logoTop };
+    }
+
+    // 실제로 저장되는 영역(캔버스 전체)을 반환
+    function computeExportRect() {
+      // 캔버스 버퍼 크기는 export 시 그대로 사용됨
+      return { left: 0, top: 0, width: canvas.width, height: canvas.height };
+    }
+
     // 저장/배경/마스크가 공유하는 레이아웃 계산식 (업로드 영역 확대 버전)
     function computeSaveLayout() {
       const vp = getViewportSize();
@@ -837,12 +863,17 @@
     function applyBgTransform() {
       const bg = document.getElementById('bgSvg');
       if (!bg) return;
+      const { logoW, logoH, logoLeft, logoTop } = computeFixedSaveBoxRect(1.3);
       const s = viewScale;
-      const extraX = bgBaseLeft * (s - 1);
-      const extraY = bgBaseTop * (s - 1);
-      const tx = Math.round(viewTranslateX + extraX);
-      const ty = Math.round(viewTranslateY + extraY);
-      bg.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+      const left = Math.round(viewTranslateX + logoLeft * s);
+      const top = Math.round(viewTranslateY + logoTop * s);
+      const width = Math.round(logoW * s);
+      const height = Math.round(logoH * s);
+      bg.style.transform = '';
+      bg.style.left = left + 'px';
+      bg.style.top = top + 'px';
+      bg.style.width = width + 'px';
+      bg.style.height = height + 'px';
     }
     function setView(scale, tx, ty) {
       viewScale = clamp(scale, MIN_SCALE, MAX_SCALE);
@@ -1344,9 +1375,11 @@
 
     /* ===== 저장(업로드) 기능 ===== */
     async function composeDrawingBlob() {
+      // 전체 화면에 합성 후, 고정 박스로 크롭 저장
+      const { vp, logoScale, logoW, logoH, boxW, boxH, logoLeft, logoTop, left, top } = computeFixedSaveBoxRect(1.3);
       const exportCanvas = document.createElement('canvas');
-      exportCanvas.width  = canvas.width;
-      exportCanvas.height = canvas.height;
+      exportCanvas.width  = vp.width;
+      exportCanvas.height = vp.height;
       const ectx = exportCanvas.getContext('2d');
 
       // 1) 스트로크를 별도의 오프스크린 캔버스에 먼저 렌더링(배경 보호)
@@ -1359,9 +1392,6 @@
       // 2) 배경을 '기본 배치(변환 적용 전)' 기준으로 동일하게 배치하여
       //    현재 줌/이동 상태와 무관하게 스트로크와 정합되도록 함
       const bgEl = document.getElementById('bgSvg');
-      const { marginX, marginTop, bottomGap } = computeSaveLayout();
-      const boxW = Math.max(200, exportCanvas.width - marginX * 2);
-      const boxH = Math.max(200, exportCanvas.height - marginTop - bottomGap);
 
       // 3) 배경 흰색 채우기
       ectx.save();
@@ -1372,13 +1402,9 @@
       // 4) 배경 SVG를 Path2D로 직접 그리기(가장 호환성이 높고 누락 위험이 없음)
       try {
         const vbParts = (bgEl?.getAttribute('viewBox') || '0 0 550 550').trim().split(/\s+/).map(Number);
-        const vbW = vbParts[2] || 550;
-        const vbH = vbParts[3] || 550;
-        const scale = Math.min(boxW / vbW, boxH / vbH);
-        const drawW = vbW * scale;
-        const drawH = vbH * scale;
-        const dx = Math.floor(marginX + (boxW - drawW) / 2);
-        const dy = Math.floor(marginTop + (boxH - drawH) / 2);
+        const scale = logoScale;
+        const dx = logoLeft;
+        const dy = logoTop;
         const pathEls = Array.from(document.querySelectorAll('#bgSvg path'));
         ectx.save();
         ectx.translate(dx, dy);
@@ -1409,14 +1435,10 @@
             i.onerror = reject;
             i.src = url;
           });
-          const imgW = img.naturalWidth;
-          const imgH = img.naturalHeight;
-          const scale = Math.min(boxW / imgW, boxH / imgH);
-          const drawW = imgW * scale;
-          const drawH = imgH * scale;
-          const dx = Math.floor(marginX + (boxW - drawW) / 2);
-          const dy = Math.floor(marginTop + (boxH - drawH) / 2);
-          ectx.drawImage(img, dx, dy, drawW, drawH);
+          const scale = logoScale;
+          const dx = logoLeft;
+          const dy = logoTop;
+          ectx.drawImage(img, dx, dy, Math.round(img.naturalWidth*scale), Math.round(img.naturalHeight*scale));
         } finally {
           URL.revokeObjectURL(url);
         }
@@ -1425,7 +1447,14 @@
       // 5) 스트로크 레이어 합성(배경 위에)
       ectx.drawImage(strokesCanvas, 0, 0);
 
-      const blob = await new Promise(resolve => exportCanvas.toBlob(resolve, 'image/png'));
+      // 6) 고정 박스로 크롭
+      const cropCanvas = document.createElement('canvas');
+      cropCanvas.width = Math.max(1, boxW);
+      cropCanvas.height = Math.max(1, boxH);
+      const cctx = cropCanvas.getContext('2d');
+      cctx.drawImage(exportCanvas, left, top, boxW, boxH, 0, 0, boxW, boxH);
+
+      const blob = await new Promise(resolve => cropCanvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error(I18N.copy.draw.errorImageGen[I18N.locale]);
       return blob;
     }
@@ -1612,11 +1641,16 @@
     // 시작 화면 동작
     startOnlineBtn?.addEventListener('click', () => {
       startScreen?.parentNode?.removeChild(startScreen);
-      setTimeout(() => openTour(), 50);
+      // 튜토리얼은 최초 1회만 노출
+      let done = false;
+      try { done = localStorage.getItem(TOUR_KEY) === '1'; } catch (_) { done = false; }
+      if (!done) setTimeout(() => openTour(), 50);
     });
     startUploadBtn?.addEventListener('click', () => {
       startScreen?.parentNode?.removeChild(startScreen);
       openInfoModal('upload');
+      // 업로드 모드 진입 시에도 튜토리얼은 노출하지 않음(최초 1회 원칙)
+      try { if (!localStorage.getItem(TOUR_KEY)) localStorage.setItem(TOUR_KEY, '1'); } catch (_) {}
     });
     // 완료 모달 닫기 동작
     successCloseBtn?.addEventListener('click', () => closeSuccessModal());
@@ -1945,20 +1979,20 @@
       targetCtx.globalCompositeOperation = 'source-over';
     }
 
-    // 저장 영역 외부 마스크 업데이트
+    // 저장 영역 외부 마스크 업데이트 (실제 합성 저장 박스 기준)
     function updateSaveMask() {
       const mask = document.getElementById('saveMask');
       if (!mask) return;
-      const { vp, marginX, marginTop, boxW: boxW0, boxH: boxH0 } = computeSaveLayout();
-
-      // 보기 변환이 적용된 화면상의 사각형 좌표로 변환
+      const base = computeFixedSaveBoxRect(1.3);
+      const vp = base.vp;
+      // 보기 변환을 적용해 화면상의 위치/크기로 변환
       const s = viewScale;
-      const left = Math.round(viewTranslateX + marginX * s);
-      const top = Math.round(viewTranslateY + marginTop * s);
-      const boxW = Math.round(boxW0 * s);
-      const boxH = Math.round(boxH0 * s);
-      const right = vp.width - (left + boxW);
-      const bottom = vp.height - (top + boxH);
+      const lpx = Math.round(viewTranslateX + base.left * s);
+      const tpx = Math.round(viewTranslateY + base.top * s);
+      const wpx = Math.round(base.boxW * s);
+      const hpx = Math.round(base.boxH * s);
+      const right = vp.width - (lpx + wpx);
+      const bottom = vp.height - (tpx + hpx);
 
       const mTop = mask.querySelector('.m.top');
       const mLeft = mask.querySelector('.m.left');
@@ -1969,23 +2003,23 @@
         mTop.style.left = '0px';
         mTop.style.top = '0px';
         mTop.style.width = vp.width + 'px';
-        mTop.style.height = Math.max(0, top) + 'px';
+        mTop.style.height = Math.max(0, tpx) + 'px';
       }
       if (mLeft) {
         mLeft.style.left = '0px';
-        mLeft.style.top = Math.max(0, top) + 'px';
-        mLeft.style.width = Math.max(0, left) + 'px';
-        mLeft.style.height = Math.max(0, boxH) + 'px';
+        mLeft.style.top = Math.max(0, tpx) + 'px';
+        mLeft.style.width = Math.max(0, lpx) + 'px';
+        mLeft.style.height = Math.max(0, hpx) + 'px';
       }
       if (mRight) {
-        mRight.style.left = Math.max(0, left + boxW) + 'px';
-        mRight.style.top = Math.max(0, top) + 'px';
+        mRight.style.left = Math.max(0, lpx + wpx) + 'px';
+        mRight.style.top = Math.max(0, tpx) + 'px';
         mRight.style.width = Math.max(0, right) + 'px';
-        mRight.style.height = Math.max(0, boxH) + 'px';
+        mRight.style.height = Math.max(0, hpx) + 'px';
       }
       if (mBottom) {
         mBottom.style.left = '0px';
-        mBottom.style.top = Math.max(0, top + boxH) + 'px';
+        mBottom.style.top = Math.max(0, tpx + hpx) + 'px';
         mBottom.style.width = vp.width + 'px';
         mBottom.style.height = Math.max(0, bottom) + 'px';
       }
@@ -1998,16 +2032,16 @@
       canvas.height = vp.height;
 
       // 2) 배경 SVG는 항상 툴바 위에 위치하도록, 하단에 툴바 높이만큼 공간을 비움
-      const { boxW, boxH, marginX, marginTop } = computeSaveLayout();
+      const { logoW, logoH, logoLeft, logoTop } = computeFixedSaveBoxRect(1.3);
       const bg = document.getElementById('bgSvg');
       if (bg) {
-        bg.style.left = `${marginX}px`;
-        bg.style.top = `${marginTop}px`;
-        bg.style.width = `${boxW}px`;
-        bg.style.height = `${boxH}px`;
+        bg.style.left = `${logoLeft}px`;
+        bg.style.top = `${logoTop}px`;
+        bg.style.width = `${logoW}px`;
+        bg.style.height = `${logoH}px`;
         // 스케일 보정용 기준(left/top) 저장
-        bgBaseLeft = marginX;
-        bgBaseTop = marginTop;
+        bgBaseLeft = logoLeft;
+        bgBaseTop = logoTop;
       }
       // 리사이즈 후에도 현재 보기 변환 유지
       applyBgTransform();
