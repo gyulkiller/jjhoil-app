@@ -303,6 +303,75 @@
       .cta-btn .arrow { font-size: 16px; opacity: .9; animation: arrow-move-right .9s ease-in-out infinite alternate; display: inline-flex; align-items: center; }
       .cta-btn .arrow svg { width: 16px; height: 16px; display: block; }
       @keyframes arrow-move-right { from { transform: translateX(0); } to { transform: translateX(5px); } }
+
+      /* Check modal */
+      .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 50; }
+      .modal { width: 100%; max-width: 420px; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: var(--shadow-xl); padding: 16px; }
+      .modal h3 { margin: 0 0 10px 0; font-size: 18px; }
+      .modal .desc { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+      .field { display: grid; gap: 6px; margin: 10px 0; }
+      .field label { font-size: 13px; color: var(--muted); }
+      .field input { appearance: none; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); outline: none; }
+      .field input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 80%); }
+      .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+      .btn { appearance: none; border: 1px solid var(--border); background: var(--glass); color: var(--text); border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+      .btn.primary { border-color: rgba(255,183,77,0.45); background: linear-gradient(180deg, #ffe082 0%, #ffb74d 60%, #ff8a65 100%); color: #000; font-weight: 700; }
+      .error { color: var(--destructive); font-size: 12px; margin-top: 4px; }
+      .helper { color: var(--muted); font-size: 12px; }
+
+      /* My status card */
+      .status { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04)); box-shadow: var(--shadow); }
+      .status h2 { display: flex; align-items: center; gap: 8px; }
+      .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; margin-top: 10px; }
+      .kv .k { color: var(--muted); font-size: 13px; }
+      .kv .v { font-weight: 600; }
+      .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--glass); font-size: 12px; }
+      .ticket-groups { display: grid; gap: 6px; margin-top: 4px; }
+      .ticket-item { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+      .ticket-item .slot { color: var(--muted); }
+      .ticket-item .cnt { font-weight: 700; }
+      /* My per-slot rows */
+      .my-rows { display: grid; gap: 8px; margin-top: 14px; }
+      .my-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; }
+      .status-tag { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+      .status-tag.lost { background: #e0e0e0; color: #222; }
+      .status-tag.win { background: #ff1500; color: #111; }
+      .status-tag.soon { background: #00e676; color: #001e00; }
+      .round-label { font-size: 16px; }
+      .chip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-size: 14px; background: #ffeb3b; color: #111; margin:2px}
+      .chip.oil { background: #ff9500; color: #111; }
+      .round-wrap { display: flex; align-items: center; gap: 8px; }
+      .status-tag.push { margin-left: auto; }
+
+      /* Unified card look for my-status-card */
+      #my-status-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        box-shadow: var(--shadow);
+        padding: 16px 16px 12px;
+        width: 100%;
+        max-width: 760px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      #my-status-card .status {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+      }
+      #my-status-card .status h2 {
+        margin: 0 0 10px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      #my-status-card .kv { margin-top: 8px; }
+      #my-status-card .my-rows {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
     </style>
   </head>
   <body>
@@ -322,7 +391,7 @@
         </div>
         <div class="cta-draw">
           <a href="/draw" id="cta-draw-link" class="cta-btn" title="Join U Mission">
-            <span class="label">Missed out? Boost your odds — Join 유 Mission</span>
+            <span class="label">Missed out? Boost your odds — Join U Mission</span>
             <span class="arrow" aria-hidden="true">
               <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
                 <polygon points="3,2 13,8 3,14" fill="currentColor"/>
@@ -330,10 +399,26 @@
             </span>
           </a>
         </div>
+        <div class="cta-draw">
+          <button id="check-btn" type="button" class="cta-btn" title="Check status">
+            <span class="label">Check my status</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+              </svg>
+            </span>
+          </button>
+        </div>
         <div class="faq" id="faq" hidden></div>
       </header>
 
       <div class="grid">
+        <section class="card" id="my-status-card" style="display:none;">
+          <div class="status" id="my-status">
+            <!-- filled by JS -->
+          </div>
+          <div class="my-rows" id="my-rows" aria-live="polite"></div>
+        </section>
         <section class="card">
           <div id="hourly" class="group" aria-live="polite"></div>
           <div id="winners-empty" class="empty" style="display:none;">No winners for this hour.</div>
@@ -351,6 +436,31 @@
       </footer>
     </div>
 
+    <!-- Modal: check my status -->
+    <div id="check-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="check-title">
+      <div class="modal">
+        <h3 id="check-title">Check my status</h3>
+        <div class="desc">Enter your email and phone number to view participation and tickets.</div>
+        <form id="check-form">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required />
+            <div class="helper">Use the email you used to participate.</div>
+          </div>
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="123-456-7890" required />
+            <div class="helper">Hyphens are allowed.</div>
+          </div>
+          <div class="error" id="form-error" hidden></div>
+          <div class="actions">
+            <button type="button" class="btn" id="modal-cancel">Cancel</button>
+            <button type="submit" class="btn primary" id="modal-submit">Check</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
       const $hourly = document.getElementById('hourly');
       const $winnersEmpty = document.getElementById('winners-empty');
@@ -358,6 +468,14 @@
       const $nextDraw = document.getElementById('next-draw-pill');
       const $refresh = document.getElementById('refresh-btn');
       const $jump = document.getElementById('jump-to-winners');
+      const $checkBtn = document.getElementById('check-btn');
+      const $modal = document.getElementById('check-modal');
+      const $form = document.getElementById('check-form');
+      const $formError = document.getElementById('form-error');
+      const $statusCard = document.getElementById('my-status-card');
+      const $status = document.getElementById('my-status');
+      const $myRows = document.getElementById('my-rows');
+      let __eventFrame = null; // { startUtc, endUtc }
 
       function toLocalHM(dateISO) {
         const d = new Date(dateISO);
@@ -370,6 +488,21 @@
         return `${y}.${m}.${dd}. ${hh}:00~${hh2}:00`;
       }
 
+      function toLocalHMShort(dateISO) {
+        const d = new Date(dateISO);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const next = new Date(d.getTime()); next.setHours(d.getHours() + 1);
+        const hh2 = String(next.getHours()).padStart(2, '0');
+        return `${hh}:00~${hh2}:00`;
+      }
+
+      function toHHMM(dateInput) {
+        const d = new Date(dateInput);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+
       function toLocalYMDH(dateInput) {
         const d = new Date(dateInput);
         const y = d.getFullYear();
@@ -377,6 +510,16 @@
         const dd = String(d.getDate()).padStart(2, '0');
         const hh = String(d.getHours()).padStart(2, '0');
         return `${y}.${m}.${dd} ${hh}:00`;
+      }
+
+      function toLocalYMDHM(dateInput) {
+        const d = new Date(dateInput);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${y}.${m}.${dd} ${hh}:${mm}`;
       }
 
       function maskEmail(v) {
@@ -394,6 +537,208 @@
         if (!digits) return '—';
         if (digits.length <= 3) return '*'.repeat(digits.length);
         return `${'*'.repeat(digits.length - 3)}${digits.slice(-3)}`;
+      }
+
+      function openModal() {
+        if ($modal) {
+          $modal.style.display = 'flex';
+          const email = document.getElementById('email');
+          if (email) {
+            setTimeout(() => email.focus(), 0);
+          }
+        }
+      }
+      function closeModal() {
+        if ($modal) {
+          $modal.style.display = 'none';
+        }
+      }
+
+      function normalizePhone(phone) {
+        const digits = String(phone || '').replace(/\D+/g, '');
+        return digits;
+      }
+
+      function renderMyStatus(payload, inputEmail, inputPhone) {
+        if (!$status || !$statusCard) return;
+        const { ok, submission, winner, draw } = payload || {};
+        if (!ok || !submission) {
+          $status.innerHTML = `<div class="error">No results found. Please check your inputs.</div>`;
+          $statusCard.style.display = 'block';
+          return;
+        }
+        const participatedAt = submission.respondedAt || submission.createdAt;
+        const ticketCount = (draw && typeof draw.count === 'number') ? draw.count : 0;
+        const isWon = !!(winner && winner.hasWon);
+        const favOil = submission.favoriteOil || '—';
+        const name = submission.name || '—';
+        // 가장 늦은 추첨 시간 계산: winner.drawHourUtc(회차 종료 정각)와 draw.times를 모두 고려
+        let candidateTimes = [];
+        if (winner && winner.drawHourUtc) {
+          const endHour = new Date(winner.drawHourUtc);
+          candidateTimes.push(endHour.getTime());
+        }
+        if (draw && Array.isArray(draw.times)) {
+          for (const t of draw.times) {
+            const dt = new Date(t);
+            dt.setMinutes(0, 0, 0);
+            dt.setHours(dt.getHours() + 1); // 해당 시각이 속한 회차의 종료 정각으로 보정
+            candidateTimes.push(dt.getTime());
+          }
+        }
+        let drawLocal = '—';
+        if (candidateTimes.length > 0) {
+          const maxMs = Math.max(...candidateTimes);
+          drawLocal = toLocalYMDH(new Date(maxMs));
+        } else {
+          drawLocal = toLocalYMDH(nextTopOfHourLocal());
+        }
+
+        // 티켓 생성 시각: draw.latestAt 또는 draw.times 중 가장 늦은 실제 실행 시각
+        let ticketCreatedLocal = '—';
+        const ticketCandidates = [];
+        if (draw && draw.latestAt) {
+          ticketCandidates.push(new Date(draw.latestAt).getTime());
+        }
+        if (draw && Array.isArray(draw.times)) {
+          for (const t of draw.times) {
+            ticketCandidates.push(new Date(t).getTime());
+          }
+        }
+        if (ticketCandidates.length > 0) {
+          const maxTicketMs = Math.max(...ticketCandidates);
+          ticketCreatedLocal = toLocalYMDHM(new Date(maxTicketMs));
+        }
+
+        // 시간대별 티켓 그룹핑 (draw.times 기준)
+        let ticketGroupsHtml = '';
+        if (draw && Array.isArray(draw.times) && draw.times.length > 0) {
+          const groupMap = new Map(); // key=startSlotISO(YYYY-MM-DDTHH) → { count, startDate }
+          for (const t of draw.times) {
+            const runAt = new Date(t);
+            runAt.setSeconds(0, 0);
+            const endHour = new Date(runAt.getTime());
+            endHour.setMinutes(0, 0, 0);
+            endHour.setHours(endHour.getHours() + 1);
+            const startSlot = new Date(endHour.getTime() - 60 * 60 * 1000);
+            const key = startSlot.toISOString().slice(0, 13);
+            const cur = groupMap.get(key) || { count: 0, startDate: startSlot };
+            cur.count += 1;
+            groupMap.set(key, cur);
+          }
+          const items = Array.from(groupMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([_, v]) => {
+            const label = toLocalHM(v.startDate.toISOString());
+            return `<div class="ticket-item"><span class="slot">${label}</span><span class="cnt">${v.count}장</span></div>`;
+          });
+          ticketGroupsHtml = items.join('');
+        }
+
+        $status.innerHTML = `
+          <h2>My draw status ${isWon ? '<span class="badge">Won</span>' : ''}</h2>
+          <div class="kv">
+            <div class="k">Selected oil</div><div class="v">${favOil}</div>
+          </div>
+        `;
+        $statusCard.style.display = 'block';
+        // 스크롤 이동
+        $statusCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      async function handleCheck(email, phone) {
+        const url = `https://tally-to-d1.gyulkiller.workers.dev/user/summary?email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+        $formError.hidden = true;
+        try {
+          const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error('Network error');
+          const data = await res.json();
+          renderMyStatus(data, email, phone);
+          renderMyRows(data);
+        } catch (e) {
+          console.error(e);
+          $formError.textContent = 'An error occurred. Please try again later.';
+          $formError.hidden = false;
+        }
+      }
+
+      function renderMyRows(payload) {
+        if (!$myRows) return;
+        $myRows.innerHTML = '';
+        const { ok, submission, winner, draw } = payload || {};
+        if (!ok || !submission) return;
+        const frame = __eventFrame;
+        if (!frame) return;
+        const slots = buildEventHourSlots(frame.startUtc, frame.endUtc);
+
+        const winEndHour = winner && winner.hasWon && winner.drawHourUtc ? new Date(winner.drawHourUtc) : null;
+        // 회차별 DRAWING 시간 매핑 (해당 슬롯의 모든 실행 시각)
+        const drawingMap = new Map(); // key=slotStartISO(YYYY-MM-DDTHH) -> Date[]
+        if (draw && Array.isArray(draw.times)) {
+          for (const t of draw.times) {
+            const run = new Date(t);
+            const endHour = new Date(run.getTime()); endHour.setMinutes(0,0,0); endHour.setHours(endHour.getHours() + 1);
+            const startSlot = new Date(endHour.getTime() - 60*60*1000);
+            const key = startSlot.toISOString().slice(0,13);
+            const list = drawingMap.get(key) || [];
+            list.push(run);
+            drawingMap.set(key, list);
+          }
+          // 시간 오름차순 정렬
+          for (const [k, list] of drawingMap) {
+            list.sort((a,b) => a.getTime() - b.getTime());
+          }
+        }
+
+        for (let i = 0; i < slots.length; i++) {
+          const start = slots[i];
+          const end = new Date(start.getTime() + 60 * 60 * 1000);
+          const label = `${toLocalHMShort(start.toISOString())}`;
+
+          let tag = null;
+          const now = Date.now();
+          if (winEndHour && end.toISOString().slice(0,13) === winEndHour.toISOString().slice(0,13)) {
+            tag = { cls: 'win', text: 'Won' };
+          }
+
+          let oilChip = '';
+          const participatedAt = submission.respondedAt || submission.createdAt;
+          let participatedInSlot = false;
+          if (participatedAt) {
+            const p = new Date(participatedAt).getTime();
+            if (p >= start.getTime() && p < end.getTime()) {
+              participatedInSlot = true;
+              const mm = new Date(participatedAt);
+              const hh = String(mm.getHours()).padStart(2,'0');
+              const mn = String(mm.getMinutes()).padStart(2,'0');
+              oilChip = `<span class=\"chip oil\">OIL ${hh}:${mn}</span>`;
+            }
+          }
+
+          // '추첨예정'은 해당 시간대에 참여가 있는 경우에만 표시
+          if (!tag && participatedInSlot) {
+            tag = now < end.getTime() ? { cls: 'soon', text: 'Upcoming' } : null; // Not-won tag removed
+          }
+
+          // 해당 회차에만 DRAWING 칩 표시 (여러 번 있을 수 있음)
+          let drawChip = '';
+          const slotKey = start.toISOString().slice(0,13);
+          const slotDrawings = drawingMap.get(slotKey);
+          if (slotDrawings && slotDrawings.length) {
+            drawChip = slotDrawings.map(d => `<span class=\"chip\">DRAWING ${toHHMM(d)}</span>`).join(' ');
+          }
+
+          const row = document.createElement('div');
+          row.className = 'my-row';
+          const rightTag = tag ? `<span class=\"status-tag ${tag.cls} push\">${tag.text}</span>` : '';
+          row.innerHTML = `
+            <span class=\"round-wrap\">
+              <span class=\"round-label\">Round ${i+1} (${label})</span>
+              ${rightTag}
+            </span>
+            <span>${oilChip}</span>
+            <span>${drawChip}</span>
+          `;
+          $myRows.appendChild(row);
+        }
       }
 
       // 이벤트 창 기준 시간 슬롯 생성 (startUtc 포함, endUtc 미포함)
@@ -422,7 +767,10 @@
         if (Array.isArray(slotsFromApi)) {
           for (const s of slotsFromApi) {
             if (!s || !s.hourUtc) continue;
-            const key = new Date(s.hourUtc).toISOString().slice(0, 13); // YYYY-MM-DDTHH
+            // API의 hourUtc는 회차 종료 시각(끝 정각)으로 가정 → 표시 슬롯은 시작 시각에 매핑하기 위해 1시간 이전으로 당겨서 키 생성
+            const endUtc = new Date(s.hourUtc);
+            const startUtcForSlot = new Date(endUtc.getTime() - 60 * 60 * 1000);
+            const key = startUtcForSlot.toISOString().slice(0, 13); // YYYY-MM-DDTHH
             slotMap.set(key, s);
           }
         }
@@ -522,10 +870,11 @@
       async function load() {
         try {
           const res = await fetch('https://tally-to-d1.gyulkiller.workers.dev/winners/event-masked', { headers: { 'Accept': 'application/json' } });
-          if (!res.ok) throw new Error('네트워크 오류');
+          if (!res.ok) throw new Error('Network error');
           const data = await res.json();
 
           const eventInfo = data && data.event ? { startUtc: data.event.startUtc, endUtc: data.event.endUtc } : null;
+          __eventFrame = eventInfo;
           const slots = Array.isArray(data?.slots) ? data.slots : [];
 
           // 헤더 표시: 다음 추첨까지 카운트다운
@@ -555,6 +904,49 @@
           }
         });
       }
+      if ($checkBtn) {
+        $checkBtn.addEventListener('click', () => openModal());
+      }
+      if ($modal) {
+        $modal.addEventListener('click', (e) => {
+          if (e.target === $modal) closeModal();
+        });
+      }
+      if ($form) {
+        $form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const email = (document.getElementById('email') || {}).value || '';
+          const phone = (document.getElementById('phone') || {}).value || '';
+          if (!email || !phone) {
+            $formError.textContent = 'Please enter email and phone number.';
+            $formError.hidden = false;
+            return;
+          }
+          $formError.hidden = true;
+          // URL 파라미터로 이동하여 자동 조회되도록 처리
+          const url = new URL(window.location.href);
+          url.searchParams.set('email', email.trim());
+          url.searchParams.set('phone', normalizePhone(phone));
+          window.location.href = url.toString();
+        });
+      }
+      const $cancel = document.getElementById('modal-cancel');
+      if ($cancel) {
+        $cancel.addEventListener('click', () => closeModal());
+      }
+      // Auto check from query string
+      (function initFromQuery() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const email = params.get('email');
+          const phone = params.get('phone');
+          if (email && phone) {
+            handleCheck(email, normalizePhone(phone));
+          }
+        } catch (e) {
+          // no-op
+        }
+      })();
       load();
       setInterval(load, 60 * 1000);
     </script>

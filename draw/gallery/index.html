@@ -8,6 +8,7 @@
     <meta name="description" content="Enjoy the latest drawings in a minimalist Apple-like design." />
 
     <link rel="preconnect" href="https://tally-to-d1.gyulkiller.workers.dev" crossorigin />
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
     <style>
       :root {
         --bg: #ffffff;
@@ -264,6 +265,7 @@
         </div>
       </div>
       <div class="muted" id="countLabel">Fetching…</div>
+      <div id="sentinel" style="height: 1px;"></div>
     </main>
 
     <script>
@@ -272,6 +274,12 @@
       const gridEl = document.getElementById('grid');
       const countLabel = document.getElementById('countLabel');
       const refreshBtn = document.getElementById('refreshBtn');
+      const sentinel = document.getElementById('sentinel');
+
+      const PAGE_SIZE = 100;
+      let nextCursor = null;
+      let isLoading = false;
+      let totalRendered = 0;
 
       function formatDateTime(isoLike) {
         try {
@@ -303,35 +311,61 @@
         }
       }
 
-      function renderItems(items) {
-        gridEl.innerHTML = '';
+      // Reveal on view (shared, single instance)
+      const revealObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            obs.unobserve(e.target);
+          }
+        });
+      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+
+      function renderItems(items, { append = false } = {}) {
+        if (!append) {
+          gridEl.innerHTML = '';
+          totalRendered = 0;
+        }
         if (!items || items.length === 0) {
-          const empty = document.createElement('p');
-          empty.className = 'section muted';
-          empty.textContent = 'No images to display.';
-          gridEl.appendChild(empty);
+          if (!append) {
+            const empty = document.createElement('p');
+            empty.className = 'section muted';
+            empty.textContent = 'No images to display.';
+            gridEl.appendChild(empty);
+          }
           return;
         }
 
         const fragment = document.createDocumentFragment();
+        function getThumbUrl(imageKey, size) {
+          if (!imageKey) return null;
+          var s = Math.max(50, Math.floor(size || 300));
+          return `https://ik.imagekit.io/thename/${imageKey}?tr=w-${s},h-${s},cm-pad,f-webp,q-70`;
+        }
+        const base = append ? totalRendered : 0;
 
         items.forEach((it, idx) => {
-          const order = items.length - idx;
+          const order = base + (items.length - idx);
           const fig = document.createElement('figure');
           fig.className = 'card';
           fig.setAttribute('role', 'listitem');
 
           const img = document.createElement('img');
           img.className = 'thumb';
-          img.src = it.url;
+          const thumb300 = getThumbUrl(it.imageKey, 300) || it.url;
+          const thumb600 = getThumbUrl(it.imageKey, 600) || '';
+          img.src = thumb300;
+          if (thumb600) {
+            img.srcset = `${thumb300} 1x, ${thumb600} 2x`;
+          }
+          img.sizes = '(min-width: 1200px) 360px, (min-width: 768px) 45vw, 90vw';
           img.alt = `Artwork #${order}`;
           img.loading = 'lazy';
           img.decoding = 'async';
-          if (idx < 4) {
+          if (!append && idx < 4) {
             img.setAttribute('fetchpriority', 'high');
           }
 
-          // open lightbox on click
           img.addEventListener('click', () => openLightbox(it.url, `#${order}`));
 
           const footer = document.createElement('figcaption');
@@ -346,43 +380,72 @@
           fragment.appendChild(fig);
         });
 
+        const beforeCount = gridEl.childElementCount;
         gridEl.appendChild(fragment);
+        const added = Array.from(gridEl.children).slice(beforeCount);
+        added.forEach(el => revealObserver.observe(el));
 
-        // Reveal on view
-        const io = new IntersectionObserver((entries, obs) => {
-          entries.forEach(e => {
-            if (e.isIntersecting) {
-              e.target.classList.add('visible');
-              obs.unobserve(e.target);
-            }
-          });
-        }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
-
-        gridEl.querySelectorAll('.card').forEach(el => io.observe(el));
+        totalRendered += items.length;
       }
 
-      async function fetchItems() {
-        countLabel.textContent = 'Fetching…';
-        createSkeletons();
+      async function fetchItems(cursor = null, { append = false } = {}) {
+        if (isLoading) return;
+        isLoading = true;
+        countLabel.textContent = append ? 'Loading more…' : 'Fetching…';
+        if (!append) createSkeletons();
+
         try {
-          const res = await fetch(API_URL, { cache: 'no-store' });
+          const url = new URL(API_URL);
+          url.searchParams.set('limit', String(PAGE_SIZE));
+          if (cursor) url.searchParams.set('cursor', cursor);
+
+          const res = await fetch(url.toString(), { cache: 'no-store' });
           if (!res.ok) throw new Error('Network error');
           const data = await res.json();
           const items = Array.isArray(data?.items) ? data.items : [];
-          countLabel.textContent = `${items.length} results`;
-          renderItems(items);
+          renderItems(items, { append });
+          countLabel.textContent = `${totalRendered} results`;
+          nextCursor = data?.nextCursor ?? null;
+          if (nextCursor) {
+            sentinel.classList.remove('hidden');
+          } else {
+            sentinel.classList.add('hidden');
+          }
         } catch (err) {
           console.error(err);
-          countLabel.textContent = 'Fetch failed';
-          gridEl.innerHTML = '';
-          const errBox = document.createElement('div');
-          errBox.className = 'section';
-          errBox.innerHTML = '<p class="muted">Failed to fetch data. Please try again later.</p>';
-          gridEl.appendChild(errBox);
+          if (!append) {
+            countLabel.textContent = 'Fetch failed';
+            gridEl.innerHTML = '';
+            const errBox = document.createElement('div');
+            errBox.className = 'section';
+            errBox.innerHTML = '<p class="muted">Failed to fetch data. Please try again later.</p>';
+            gridEl.appendChild(errBox);
+          } else {
+            countLabel.textContent = 'Load more failed';
+          }
+        } finally {
+          isLoading = false;
         }
       }
 
-      refreshBtn.addEventListener('click', () => fetchItems());
+      function resetAndLoad() {
+        nextCursor = null;
+        totalRendered = 0;
+        gridEl.innerHTML = '';
+        fetchItems(null, { append: false });
+      }
+
+      refreshBtn.addEventListener('click', () => resetAndLoad());
+
+      // Infinite scroll via sentinel
+      const sentinelObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting && nextCursor && !isLoading) {
+            fetchItems(nextCursor, { append: true });
+          }
+        });
+      }, { rootMargin: '1200px 0px 800px 0px' });
+      sentinelObserver.observe(sentinel);
 
       // Lightbox helpers
       function openLightbox(src, label) {
@@ -408,7 +471,7 @@
       }
 
       // Initial load
-      fetchItems();
+      resetAndLoad();
     </script>
   </body>
   </html>
