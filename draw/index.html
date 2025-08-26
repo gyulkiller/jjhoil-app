@@ -31,6 +31,9 @@
       object-position: center center;
       z-index: 2;
     }
+    /* 저장 영역 외부 회색 마스크 */
+    #saveMask { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+    #saveMask .m { position: absolute; background: rgba(0,0,0,0.2); }
     /* 확대/이동 시 SVG 배경과 캔버스 정합 확보 */
     #bgSvg { transform-origin: 0 0; }
     /* === 툴바 스타일 === */
@@ -670,6 +673,13 @@
     <path d="M549.999 265.599L0 265.599L0 282.052L549.999 282.052V265.599Z" fill="black"/>
   </svg>
   <canvas id="c"></canvas>
+  <!-- 저장 영역 외부를 회색으로 마스킹하는 오버레이 (툴바 아래, 캔버스 위) -->
+  <div id="saveMask" aria-hidden="true">
+    <div class="m top"></div>
+    <div class="m left"></div>
+    <div class="m right"></div>
+    <div class="m bottom"></div>
+  </div>
 
   <script>
     // 업로드 엔드포인트 기본값 설정
@@ -757,6 +767,21 @@
     }
     setAppVhVar();
 
+    // 저장/배경/마스크가 공유하는 레이아웃 계산식 (업로드 영역 확대 버전)
+    function computeSaveLayout() {
+      const vp = getViewportSize();
+      const isDesktop = vp.width >= 769;
+      const marginX = isDesktop ? 60 : 20;   // 좌우 여백 축소
+      const marginTop = isDesktop ? 40 : 16; // 상단 여백 축소
+      const toolbarRect = toolbarEl?.getBoundingClientRect?.();
+      const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
+      const extraBottom = isDesktop ? 80 : 48; // 하단 추가 여백 축소
+      const bottomGap = toolbarHeight + extraBottom;
+      const boxW = Math.max(200, vp.width - marginX * 2);
+      const boxH = Math.max(200, vp.height - marginTop - bottomGap);
+      return { vp, isDesktop, marginX, marginTop, toolbarHeight, extraBottom, bottomGap, boxW, boxH };
+    }
+
     let resizeScheduled = false;
     function scheduleResize() {
       if (resizeScheduled) return;
@@ -824,6 +849,7 @@
       viewTranslateX = tx;
       viewTranslateY = ty;
       applyBgTransform();
+      updateSaveMask();
       render();
       scheduleSave();
     }
@@ -1333,14 +1359,7 @@
       // 2) 배경을 '기본 배치(변환 적용 전)' 기준으로 동일하게 배치하여
       //    현재 줌/이동 상태와 무관하게 스트로크와 정합되도록 함
       const bgEl = document.getElementById('bgSvg');
-      const vp = getViewportSize();
-      const isDesktop = vp.width >= 769;
-      const marginX = isDesktop ? 140 : 40;
-      const marginTop = isDesktop ? 80 : 24;
-      const toolbarRect = toolbarEl?.getBoundingClientRect?.();
-      const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
-      const extraBottom = isDesktop ? 140 : 100;
-      const bottomGap = toolbarHeight + extraBottom;
+      const { marginX, marginTop, bottomGap } = computeSaveLayout();
       const boxW = Math.max(200, exportCanvas.width - marginX * 2);
       const boxH = Math.max(200, exportCanvas.height - marginTop - bottomGap);
 
@@ -1926,6 +1945,52 @@
       targetCtx.globalCompositeOperation = 'source-over';
     }
 
+    // 저장 영역 외부 마스크 업데이트
+    function updateSaveMask() {
+      const mask = document.getElementById('saveMask');
+      if (!mask) return;
+      const { vp, marginX, marginTop, boxW: boxW0, boxH: boxH0 } = computeSaveLayout();
+
+      // 보기 변환이 적용된 화면상의 사각형 좌표로 변환
+      const s = viewScale;
+      const left = Math.round(viewTranslateX + marginX * s);
+      const top = Math.round(viewTranslateY + marginTop * s);
+      const boxW = Math.round(boxW0 * s);
+      const boxH = Math.round(boxH0 * s);
+      const right = vp.width - (left + boxW);
+      const bottom = vp.height - (top + boxH);
+
+      const mTop = mask.querySelector('.m.top');
+      const mLeft = mask.querySelector('.m.left');
+      const mRight = mask.querySelector('.m.right');
+      const mBottom = mask.querySelector('.m.bottom');
+
+      if (mTop) {
+        mTop.style.left = '0px';
+        mTop.style.top = '0px';
+        mTop.style.width = vp.width + 'px';
+        mTop.style.height = Math.max(0, top) + 'px';
+      }
+      if (mLeft) {
+        mLeft.style.left = '0px';
+        mLeft.style.top = Math.max(0, top) + 'px';
+        mLeft.style.width = Math.max(0, left) + 'px';
+        mLeft.style.height = Math.max(0, boxH) + 'px';
+      }
+      if (mRight) {
+        mRight.style.left = Math.max(0, left + boxW) + 'px';
+        mRight.style.top = Math.max(0, top) + 'px';
+        mRight.style.width = Math.max(0, right) + 'px';
+        mRight.style.height = Math.max(0, boxH) + 'px';
+      }
+      if (mBottom) {
+        mBottom.style.left = '0px';
+        mBottom.style.top = Math.max(0, top + boxH) + 'px';
+        mBottom.style.width = vp.width + 'px';
+        mBottom.style.height = Math.max(0, bottom) + 'px';
+      }
+    }
+
     function resize() {
       // 1) 전체 화면 캔버스 버퍼 크기 갱신 (스타일 크기는 CSS로 고정)
       const vp = getViewportSize();
@@ -1933,18 +1998,9 @@
       canvas.height = vp.height;
 
       // 2) 배경 SVG는 항상 툴바 위에 위치하도록, 하단에 툴바 높이만큼 공간을 비움
-      const isDesktop = vp.width >= 769;
-      const marginX = isDesktop ? 140 : 40;
-      const marginTop = isDesktop ? 80 : 24;
-      const toolbarRect = toolbarEl?.getBoundingClientRect?.();
-      const toolbarHeight = toolbarRect?.height ? Math.ceil(toolbarRect.height) : (isDesktop ? 90 : 70);
+      const { boxW, boxH, marginX, marginTop } = computeSaveLayout();
       const bg = document.getElementById('bgSvg');
       if (bg) {
-        const boxW = Math.max(200, vp.width - marginX * 2);
-        // 툴바보다 훨씬 넉넉한 하단 여백을 확보
-        const extraBottom = isDesktop ? 140 : 100; // 추가 여백(px)
-        const bottomGap = toolbarHeight + extraBottom;
-        const boxH = Math.max(200, vp.height - marginTop - bottomGap);
         bg.style.left = `${marginX}px`;
         bg.style.top = `${marginTop}px`;
         bg.style.width = `${boxW}px`;
@@ -1955,6 +2011,7 @@
       }
       // 리사이즈 후에도 현재 보기 변환 유지
       applyBgTransform();
+      updateSaveMask();
       render();
     }
 
