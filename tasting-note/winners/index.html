@@ -193,7 +193,7 @@
         background: var(--border);
       }
       .oil-row.oil-a::before { background: #f1c40f; }
-      .oil-row.oil-b::before { background: #f6d365; }
+      .oil-row.oil-b::before { background: #ff9500; }
       .oil-row.oil-c::before { background: #ff5a5f; }
       .oil-name { font-weight: 700; color: var(--text); margin-bottom: 6px; }
       .oil-desc { color: var(--muted); line-height: 1.4; white-space: pre-line; }
@@ -295,6 +295,14 @@
       .jump-btn:hover { transform: translateY(-1px); border-color: rgba(0,0,0,0.22); background: linear-gradient(180deg, #ffdf66 0%, #ffcc3d 60%, #ffb300 100%); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
       .jump-btn .arrow { font-size: 14px; opacity: .85; animation: arrow-bounce .9s ease-in-out infinite alternate; }
       @keyframes arrow-bounce { from { transform: translateY(-1px); } to { transform: translateY(3px); } }
+
+      /* CTA link to /draw */
+      .cta-draw { display: flex; justify-content: center; }
+      .cta-btn { appearance: none; border: 1px solid rgba(255,183,77,0.45); background: linear-gradient(180deg, #ffe082 0%, #ffb74d 60%, #ff8a65 100%); color: #000; border-radius: 999px; padding: 12px 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 6px 14px rgba(0,0,0,0.18); transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; font-weight: 800; font-size: 15px; text-decoration: none; }
+      .cta-btn:hover { transform: translateY(-1px); border-color: rgba(255,183,77,0.6); background: linear-gradient(180deg, #ffecb3 0%, #ffc165 60%, #ff9e80 100%); box-shadow: 0 8px 18px rgba(0,0,0,0.24); }
+      .cta-btn .arrow { font-size: 16px; opacity: .9; animation: arrow-move-right .9s ease-in-out infinite alternate; display: inline-flex; align-items: center; }
+      .cta-btn .arrow svg { width: 16px; height: 16px; display: block; }
+      @keyframes arrow-move-right { from { transform: translateX(0); } to { transform: translateX(5px); } }
     </style>
   </head>
   <body>
@@ -311,6 +319,16 @@
             <span class="arrow">▼</span>
             <span class="label">See winners below</span>
           </button>
+        </div>
+        <div class="cta-draw">
+          <a href="/draw" id="cta-draw-link" class="cta-btn" title="Join U Mission">
+            <span class="label">Missed out? Boost your odds — Join 유 Mission</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+              </svg>
+            </span>
+          </a>
         </div>
         <div class="faq" id="faq" hidden></div>
       </header>
@@ -352,6 +370,15 @@
         return `${y}.${m}.${dd}. ${hh}:00~${hh2}:00`;
       }
 
+      function toLocalYMDH(dateInput) {
+        const d = new Date(dateInput);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        return `${y}.${m}.${dd} ${hh}:00`;
+      }
+
       function maskEmail(v) {
         if (!v || typeof v !== 'string' || !v.includes('@')) return '—';
         const [local, domain] = v.split('@');
@@ -369,44 +396,39 @@
         return `${'*'.repeat(digits.length - 3)}${digits.slice(-3)}`;
       }
 
-      // removed unused: toLocalTimeHM
-      function buildLast24HourSlots() {
-        const slots = [];
-        const hourMillis = 60 * 60 * 1000;
-        const end = new Date();
+      // 이벤트 창 기준 시간 슬롯 생성 (startUtc 포함, endUtc 미포함)
+      function buildEventHourSlots(startUtcISO, endUtcISO) {
+        const out = [];
+        if (!startUtcISO || !endUtcISO) return out;
+        const start = new Date(startUtcISO);
+        const end = new Date(endUtcISO);
+        // 정각 보정
+        start.setMinutes(0, 0, 0);
         end.setMinutes(0, 0, 0);
-        // 시작점을 직전 정각으로 이동 (현재 08:24라면 07:00부터 표시)
-        end.setHours(end.getHours() - 1);
-        for (let i = 0; i < 24; i++) {
-          slots.push(new Date(end.getTime() - i * hourMillis));
+        for (let t = new Date(start); t < end; t = new Date(t.getTime() + 60 * 60 * 1000)) {
+          out.push(new Date(t));
         }
-        return slots; // 최신이 앞(위)로 사용
+        return out;
       }
 
-      function sameHour(a, b) {
-        return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate() && a.getUTCHours() === b.getUTCHours();
-      }
-
-      function renderHourlySlots(drawISO, winners) {
+      function renderEventSlots(eventInfo, slotsFromApi) {
         $hourly.innerHTML = '';
-        const slots = buildLast24HourSlots();
-        // 서버는 drawHourUtc(창 종료 정각)를 내려줌. 화면 버킷은 "창 시작 정각"으로 비교해야 함.
-        const drawHourEndUtc = drawISO ? new Date(drawISO) : null;
-        const drawWindowStartUtc = drawHourEndUtc ? new Date(drawHourEndUtc.getTime() - 60 * 60 * 1000) : null;
+        const startUtc = eventInfo?.startUtc || null;
+        const endUtc = eventInfo?.endUtc || null;
+        const frameSlots = buildEventHourSlots(startUtc, endUtc);
 
-        // winners를 오일별로 카운트/대표자 선정
-        const byOil = new Map();
-        if (Array.isArray(winners)) {
-          for (const w of winners) {
-            const id = w.oilOptionId || 'unknown';
-            if (!byOil.has(id)) byOil.set(id, { count: 0, first: null });
-            const cur = byOil.get(id);
-            cur.count += 1;
-            if (!cur.first) cur.first = w;
+        // API 슬롯을 빠르게 조회할 수 있도록 매핑
+        const slotMap = new Map();
+        if (Array.isArray(slotsFromApi)) {
+          for (const s of slotsFromApi) {
+            if (!s || !s.hourUtc) continue;
+            const key = new Date(s.hourUtc).toISOString().slice(0, 13); // YYYY-MM-DDTHH
+            slotMap.set(key, s);
           }
         }
 
-        for (const slot of slots) {
+        const now = Date.now();
+        for (const slot of frameSlots) {
           const block = document.createElement('div');
           block.className = 'hour-block';
           const title = document.createElement('div');
@@ -414,46 +436,58 @@
           title.textContent = toLocalHM(slot.toISOString());
           block.appendChild(title);
 
-          if (drawWindowStartUtc && sameHour(slot, drawWindowStartUtc)) block.classList.add('latest');
+          const key = slot.toISOString().slice(0, 13);
+          const slotData = slotMap.get(key);
+          const drawAt = new Date(slot.getTime() + 60 * 60 * 1000);
+          const isFuture = now < drawAt.getTime();
 
-          for (let i = 0; i < OILS.length; i++) {
-            const o = OILS[i];
-            const row = document.createElement('div');
-            row.className = `oil-row ${['oil-a','oil-b','oil-c'][i]}`;
+          if (slotData && Array.isArray(slotData.oils) && slotData.oils.length > 0) {
+            slotData.oils.forEach((oil, idx) => {
+              const row = document.createElement('div');
+              row.className = `oil-row ${['oil-a','oil-b','oil-c'][idx % 3]}`;
 
-            const name = document.createElement('div');
-            name.className = 'oil-name';
-            name.textContent = o.text;
-            row.appendChild(name);
+              const name = document.createElement('div');
+              name.className = 'oil-name';
+              name.textContent = oil.oilLabel || 'Oil';
+              row.appendChild(name);
 
-            const desc = document.createElement('div');
-            desc.className = 'oil-desc';
-            if (drawWindowStartUtc && sameHour(slot, drawWindowStartUtc)) {
-              const info = byOil.get(o.id);
-              if (info && info.count > 0) {
-                const first = info.first || {};
-                const email = first.email ? maskEmail(first.email) : null;
-                const phone = first.phone ? maskPhone(first.phone) : null;
-                const others = info.count > 1 ? `\n${info.count - 1}명 추가 응모자` : '';
-                desc.textContent = [email || phone || '익명', others].filter(Boolean).join('');
+              const desc = document.createElement('div');
+              desc.className = 'oil-desc';
+              if (Array.isArray(oil.winners) && oil.winners.length > 0) {
+                const lines = oil.winners.map(w => {
+                  const e = (w && w.email) ? w.email : '';
+                  const p = (w && w.phone) ? w.phone : '';
+                  return [e, p].filter(Boolean).join(' ');
+                });
+                desc.textContent = lines.join('\n');
               } else {
-                desc.textContent = 'Draw skipped.';
+                desc.textContent = isFuture ? `Scheduled to draw at ${toLocalYMDH(drawAt)}` : 'Draw skipped.';
               }
-            } else {
-              desc.textContent = 'Draw skipped.';
-            }
-            row.appendChild(desc);
-            block.appendChild(row);
+              row.appendChild(desc);
+              block.appendChild(row);
+            });
+          } else {
+            // 슬롯은 있으나 당첨자 없음 표시 (오일 3종 고정 표시)
+            const oils = ['Sesame oil 138(Left)', 'Sesame oil 167(Center)', 'Sesame oil 178(Right)'];
+            oils.forEach((label, idx) => {
+              const row = document.createElement('div');
+              row.className = `oil-row ${['oil-a','oil-b','oil-c'][idx]}`;
+              const name = document.createElement('div');
+              name.className = 'oil-name';
+              name.textContent = label;
+              row.appendChild(name);
+              const desc = document.createElement('div');
+              desc.className = 'oil-desc';
+              desc.textContent = isFuture ? `Scheduled to draw at ${toLocalYMDH(drawAt)}` : 'Draw skipped.';
+              row.appendChild(desc);
+              block.appendChild(row);
+            });
           }
           $hourly.appendChild(block);
         }
       }
 
-      const OILS = [
-        { id: 'c0d1f1f0-29e1-4f26-9d1d-549f42e6d5ad', text: 'Sesame Oil 138' },
-        { id: '3b97e12d-21c2-40df-92c5-69c53509be2a', text: 'Sesame Oil 167' },
-        { id: '39ba649a-863f-4dd7-b0a3-939019dddd7c', text: 'Sesame Oil 178' },
-      ];
+      // OILS 상수는 이벤트 API 렌더링에서 직접 레이블을 사용하므로 제거
 
       let countdownTimer = null;
       function nextTopOfHourLocal() {
@@ -462,10 +496,7 @@
         d.setHours(d.getHours() + 1);
         return d;
       }
-      function nextFromDraw() {
-        // 추첨 주기가 매시 정각이므로, 최근 추첨과 무관하게 다음 로컬 정각으로 계산
-        return nextTopOfHourLocal();
-      }
+      function nextFromDraw() { return nextTopOfHourLocal(); }
       function nextFromNow() {
         return nextTopOfHourLocal();
       }
@@ -490,24 +521,27 @@
 
       async function load() {
         try {
-          const res = await fetch('https://tally-to-d1.gyulkiller.workers.dev/winners/latest', { headers: { 'Accept': 'application/json' } });
+          const res = await fetch('https://tally-to-d1.gyulkiller.workers.dev/winners/event-masked', { headers: { 'Accept': 'application/json' } });
           if (!res.ok) throw new Error('네트워크 오류');
           const data = await res.json();
 
-          const drawISO = data?.drawHourUtc || null;
-          const winners = Array.isArray(data?.winners) ? data.winners : [];
-          const hasWinners = winners.length > 0;
+          const eventInfo = data && data.event ? { startUtc: data.event.startUtc, endUtc: data.event.endUtc } : null;
+          const slots = Array.isArray(data?.slots) ? data.slots : [];
 
-          // 헤더 정보
-          startCountdown(nextFromDraw());
+          // 헤더 표시: 다음 추첨까지 카운트다운
+          if ($nextDraw) {
+            startCountdown(nextFromDraw());
+          }
 
-          // 시간대별 24개 슬롯 렌더링
+          // 이벤트 창 기반 렌더링
           $winnersEmpty.style.display = 'none';
-          renderHourlySlots(drawISO, winners);
+          renderEventSlots(eventInfo, slots);
         } catch (e) {
           console.error(e);
-          // 오류 시에도 24개 슬롯을 참여자없음으로 표시
-          renderHourlySlots(null, []);
+          // 오류 시 화면 비움
+          $hourly.innerHTML = '';
+          $winnersEmpty.style.display = 'block';
+          $winnersEmpty.textContent = 'No winners for this hour.';
           startCountdown(nextFromNow());
         }
       }
