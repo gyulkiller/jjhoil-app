@@ -52,6 +52,10 @@
         --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
         --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
         --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+        /* glass background token used across buttons/pills */
+        --glass: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+        /* CTA yellow brand color */
+        --cta-yellow: #ffcc3d;
       }
       .dark {
         --background: oklch(0.2046 0 0);
@@ -86,6 +90,8 @@
         --sidebar-accent-foreground: oklch(0.9243 0.1151 95.7459);
         --sidebar-border: oklch(0.3715 0 0);
         --sidebar-ring: oklch(0.7686 0.1647 70.0804);
+        --glass: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+        --cta-yellow: #ffcc3d;
       }
       /* legacy variable mapping for this page */
       :root {
@@ -304,6 +310,22 @@
       .cta-btn .arrow svg { width: 16px; height: 16px; display: block; }
       @keyframes arrow-move-right { from { transform: translateX(0); } to { transform: translateX(5px); } }
 
+      /* Outline button variant (e.g., Join Mission) */
+      .outline-btn { appearance: none; border: 1.5px solid var(--cta-yellow); background: transparent; color: var(--foreground); border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 2px 0 rgba(0,0,0,0.04), var(--shadow-xs); font-weight: 800; font-size: 15px; text-decoration: none; }
+      .outline-btn:hover { background: color-mix(in oklch, var(--cta-yellow), white 92%); box-shadow: 0 8px 18px rgba(0,0,0,0.18); transform: translateY(-1px); }
+      .outline-btn .arrow { font-size: 16px; opacity: .9; display: inline-flex; align-items: center; }
+      .outline-btn .arrow svg { width: 16px; height: 16px; display: block; }
+
+      /* Ghost button variant (less emphasis) */
+      .ghost-btn { appearance: none; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.12)}
+      .ghost-btn:hover { background: var(--glass); color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.12); transform: translateY(-1px); }
+
+      /* Actions bar (top buttons unified) */
+      .actions { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+      .action-btn { display: inline-flex; align-items: center; justify-content: center;}
+      .action-btn .label { white-space: nowrap; }
+      .action-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 80%); }
+
       /* Check modal */
       .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 50; }
       .modal { width: 100%; max-width: 420px; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); box-shadow: var(--shadow-xl); padding: 16px; }
@@ -383,24 +405,20 @@
         <div class="meta">
           <span class="pill" id="next-draw-pill">Until next draw —</span>
         </div>
-        <div class="jump">
-          <button id="jump-to-winners" type="button" class="jump-btn" title="See winners below">
+        <div class="actions">
+          <button id="jump-to-winners" type="button" class="action-btn jump-btn" title="See winners below">
             <span class="arrow">▼</span>
             <span class="label">See winners below</span>
           </button>
-        </div>
-        <div class="cta-draw">
-          <a href="/draw" id="cta-draw-link" class="cta-btn" title="Join U Mission">
-            <span class="label">Missed out? Boost your odds — Join U Mission</span>
+          <a href="/draw" id="cta-draw-link" class="action-btn outline-btn" title="Join U Mission" rel="noopener">
+            <span class="label">Missed out? Boost your odds — Join 유 Mission</span>
             <span class="arrow" aria-hidden="true">
               <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
                 <polygon points="3,2 13,8 3,14" fill="currentColor"/>
               </svg>
             </span>
           </a>
-        </div>
-        <div class="cta-draw">
-          <button id="check-btn" type="button" class="cta-btn" title="Check status">
+          <button id="check-btn" type="button" class="action-btn ghost-btn" title="Check status">
             <span class="label">Check my status</span>
             <span class="arrow" aria-hidden="true">
               <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
