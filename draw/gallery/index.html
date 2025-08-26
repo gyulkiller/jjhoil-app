@@ -9,6 +9,8 @@
 
     <link rel="preconnect" href="https://tally-to-d1.gyulkiller.workers.dev" crossorigin />
     <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
+    <link rel="dns-prefetch" href="https://ik.imagekit.io">
+    <link rel="dns-prefetch" href="https://tally-to-d1.gyulkiller.workers.dev">
     <style>
       :root {
         --bg: #ffffff;
@@ -270,6 +272,12 @@
 
     <script>
       const API_URL = 'https://tally-to-d1.gyulkiller.workers.dev/draws';
+      // Register service worker (for caching thumbnails)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/draw/sw.js').catch(() => {});
+        });
+      }
 
       const gridEl = document.getElementById('grid');
       const countLabel = document.getElementById('countLabel');
