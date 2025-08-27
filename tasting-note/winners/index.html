@@ -203,6 +203,8 @@
       .oil-row.oil-c::before { background: #ff5a5f; }
       .oil-name { font-weight: 700; color: var(--text); margin-bottom: 6px; }
       .oil-desc { color: var(--muted); line-height: 1.4; white-space: pre-line; }
+      /* Winner badge (email + phone) */
+      .winner-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: color-mix(in oklch, var(--foreground), white 92%); border: 1px solid var(--border); color: var(--foreground); font-size: 12px; margin: 2px 6px 2px 0; box-shadow: var(--shadow-2xs); }
 
       .grid {
         display: grid;
@@ -837,12 +839,19 @@
               const desc = document.createElement('div');
               desc.className = 'oil-desc';
               if (Array.isArray(oil.winners) && oil.winners.length > 0) {
-                const lines = oil.winners.map(w => {
+                const frag = document.createDocumentFragment();
+                oil.winners.forEach(w => {
                   const e = (w && w.email) ? w.email : '';
                   const p = (w && w.phone) ? w.phone : '';
-                  return [e, p].filter(Boolean).join(' ');
+                  const label = [e, p].filter(Boolean).join(' / ');
+                  if (!label) return;
+                  const badge = document.createElement('span');
+                  badge.className = 'winner-badge';
+                  badge.textContent = label;
+                  frag.appendChild(badge);
                 });
-                desc.textContent = lines.join('\n');
+                desc.innerHTML = '';
+                desc.appendChild(frag);
               } else {
                 desc.textContent = isFuture ? `Scheduled to draw at ${toLocalYMDH(drawAt)}` : 'Draw skipped.';
               }
