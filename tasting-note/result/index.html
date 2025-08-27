@@ -197,16 +197,17 @@
             gap: 8px;
             padding: 8px 12px;
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02));
+            background: #FFF;
             border: 1px solid rgba(0,0,0,0.12);
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             color: #111;
+            margin: 10px
         }
         .actions { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 6px; }
         .outline-btn {
             appearance: none;
             border: 1.5px solid #ffcc3d;
-            background: transparent;
+            background: #FFF;
             color: #111;
             border-radius: 999px;
             padding: 10px 14px;
@@ -265,28 +266,47 @@
             <div class="loader-hint" id="loader-hint">If loading takes too long, please refresh this page.</div>
         </div>
     </div>
-
-    <div class="meta"><span class="pill" id="user-draw-pill">Determining your draw time…</span></div>
-    <div class="actions">
-        <a href="/tasting-note/winners/" id="see-winners-btn" class="outline-btn" title="See winners" rel="noopener">
-            <span class="label">See winners</span>
-            <span class="arrow" aria-hidden="true">
-                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
-                    <polygon points="3,2 13,8 3,14" fill="currentColor"/>
-                </svg>
-            </span>
-        </a>
-        <a href="/draw" id="join-mission-btn" class="outline-btn" title="Join U Mission" rel="noopener">
-            <span class="label">Boost your odds — Join 유 Mission</span>
-            <span class="arrow" aria-hidden="true">
-                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
-                    <polygon points="3,2 13,8 3,14" fill="currentColor"/>
-                </svg>
-            </span>
-        </a>
-    </div>
-    <div class="helper-text" id="winner-claim-note">Winners must claim within 30 minutes.</div>
-
+    <section class="draw-section">
+        <div class="meta">
+            <span class="pill" id="user-draw-pill">Determining your draw time…</span>
+        </div>
+        <div class="actions">
+            <a href="/tasting-note/winners/" id="see-winners-btn" class="outline-btn" title="See winners" rel="noopener">
+                <span class="label">See winners</span>
+                <span class="arrow" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                        <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+                    </svg>
+                </span>
+            </a>
+            <a href="/draw" id="join-mission-btn" class="outline-btn" title="Join U Mission" rel="noopener">
+                <span class="label">Boost your odds — Join 유 Mission</span>
+                <span class="arrow" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                        <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+                    </svg>
+                </span>
+            </a>
+        </div>
+        <div class="helper-text" id="winner-claim-note">Winners must claim within 30 minutes.</div>
+    </section>
+    <style>
+        .draw-section {
+            background: #f7f7f9;
+            border-radius: 14px;
+            padding: 18px 0 14px 0;
+            margin: 0 auto 18px auto;
+            max-width: 700px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+            .draw-section {
+                padding: 12px 0 10px 0;
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+    
     <div id="titleBanner" class="title-banner"></div>
 
     <div id="headerText" class="header-text"></div>
