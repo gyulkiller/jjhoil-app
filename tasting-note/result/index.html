@@ -526,11 +526,11 @@
             }
             const now = Date.now();
             const fav = findFavoriteOil(row);
-            const suffix = fav ? ` — You selected the ${fav}` : '';
+            const suffix = fav ? `You selected the ${fav}. — ` : '';
             if (now < drawEnd.getTime()) {
-                pill.textContent = `Your draw will be at ${toLocalYMDH(drawEnd)} (local time)${suffix}.`;
+                pill.textContent = `${suffix}Your draw will be at ${toLocalYMDH(drawEnd)} (local time)`;
             } else {
-                pill.textContent = `Your draw at ${toLocalYMDH(drawEnd)} has completed${suffix}.`;
+                pill.textContent = `${suffix}Your draw at ${toLocalYMDH(drawEnd)} has completed.`;
             }
         }
 
