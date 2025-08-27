@@ -202,7 +202,7 @@
             '  <li>12:00 낙첨 후 13:31 그림 3장 제출 → 14시 추첨: 총 3장</li>' +
             '</ul>'
           ) },
-          { q: 'Q8. 당첨 수령은 어떻게 하나요?', a: (
+          { q: 'Q8. 당첨 수령은 어떻게 하나요? 수령기한이 있나요?', a: (
             '당첨자는 이메일 혹은 winners 페이지에서 확인 후, ⚠️ 30분 이내 부스에서 수령해야 합니다. ' +
             '부득이할 경우 <a href="https://app.jjhoil.com/tasting-note/claim" target="_blank" rel="noopener">claim 폼</a>으로 유예 신청 또는 양보가 가능하며, 신청 없이 30분이 지나면 당첨은 취소됩니다. ' +
             '저희가 해외에서 운영하는 관계로 수령에 제한이 있을 수 있으니 양해 부탁드립니다.'
@@ -233,7 +233,7 @@
             '  <li>12:00 not selected, then 13:31 3 drawings → 14:00 draw: 3 tickets</li>' +
             '</ul>'
           ) },
-          { q: 'Q8. How do I claim my prize?', a: (
+          { q: 'Q8. How do I claim my prize? Is there a deadline to claim the prize?', a: (
             'Winners are announced via email or the winners page. Claim at the booth within 30 minutes ⚠️. ' +
             'If not possible, use the <a href="https://app.jjhoil.com/tasting-note/claim" target="_blank" rel="noopener">claim form</a> for a grace period or to pass it on. ' +
             'Unclamed after 30 minutes⚠️, your win will be canceled. As we are hosting from abroad, there may be limits — thank you for your understanding.'
