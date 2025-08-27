@@ -252,6 +252,10 @@
             .header-text { font-size: 14px; }
             .chart-container { max-width: 100%; aspect-ratio: 1 / 1.15; }
             .center-image { width: 32px; height: 32px; }
+            .title-banner { margin: 2px 0 6px; }
+            .meta { margin: 4px 0 6px; }
+            .actions { margin: 2px 0 4px; }
+            .helper-text { margin-bottom: 6px; }
         }
     </style>
 </head>
@@ -301,14 +305,16 @@
         }
         @media (max-width: 768px) {
             .draw-section {
-                padding: 12px 0 10px 0;
-                margin-bottom: 12px;
+                padding: 8px 0 6px 0;
+                margin-bottom: 8px;
             }
         }
     </style>
-    
     <div id="titleBanner" class="title-banner"></div>
-
+    <div class="chart-container">
+        <canvas id="radarChart"></canvas>
+        <div class="center-image"></div>
+    </div>
     <div id="headerText" class="header-text"></div>
 
     <div class="emphasis-card" aria-live="polite">
@@ -318,10 +324,7 @@
 
 
 
-    <div class="chart-container">
-        <canvas id="radarChart"></canvas>
-        <div class="center-image"></div>
-    </div>
+
 
     
 
@@ -369,6 +372,7 @@
             if (radarChart) {
                 radarChart.destroy();
             }
+            const labelFontSize = (window.innerWidth || 0) <= 480 ? 10 : 13;
             radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -378,6 +382,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 0, right: 6, bottom: 4, left: 6 }
+                    },
                     scales: {
                         r: {
                             beginAtZero: true,
@@ -395,9 +402,10 @@
                             },
                             pointLabels: {
                                 font: {
-                                    size: 14,
+                                    size: labelFontSize,
                                     weight: 'bold'
                                 },
+                                padding: 0,
                                 color: '#000'
                             }
                         }
