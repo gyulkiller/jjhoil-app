@@ -367,10 +367,12 @@
 
       /* Unified card look for my-status-card */
       #my-status-card {
-        border: 1px solid var(--border);
+        border: 1px solid color-mix(in oklch, var(--cta-yellow), var(--border) 70%);
         border-radius: 14px;
-        background: linear-gradient(180deg, var(--panel), var(--panel-2));
-        box-shadow: var(--shadow);
+        background: 
+          linear-gradient(180deg, color-mix(in oklch, var(--cta-yellow), transparent 92%), color-mix(in oklch, var(--cta-yellow), transparent 96%)),
+          linear-gradient(180deg, var(--panel), var(--panel-2));
+        box-shadow: var(--shadow), 0 0 0 3px color-mix(in oklch, var(--cta-yellow), transparent 90%);
         padding: 16px 16px 12px;
         width: 100%;
         max-width: 760px;
@@ -590,6 +592,7 @@
         const isWon = !!(winner && winner.hasWon);
         const favOil = submission.favoriteOil || '—';
         const name = submission.name || '—';
+        const claimStatus = (winner && winner.claimStatus) ? String(winner.claimStatus).toLowerCase() : null;
         // 가장 늦은 추첨 시간 계산: winner.drawHourUtc(회차 종료 정각)와 draw.times를 모두 고려
         let candidateTimes = [];
         if (winner && winner.drawHourUtc) {
@@ -651,10 +654,24 @@
           ticketGroupsHtml = items.join('');
         }
 
+        let statusMessage = '';
+        if (isWon) {
+          if (claimStatus === 'passed') {
+            statusMessage = "Your claim window has closed, or you chose to pass the prize on.";
+          } else if (claimStatus === 'extended') {
+            statusMessage = "Please pick it up at the scheduled time.";
+          } else if (claimStatus === 'claimed') {
+            statusMessage = "You have already claimed your prize.";
+          } else {
+            statusMessage = "You’ve won! Please visit the booth within 30 minutes to claim.";
+          }
+        }
+
         $status.innerHTML = `
-          <h2>My draw status ${isWon ? '<span class="badge">Won</span>' : ''}</h2>
+          <h2>${name}'s draw status</h2>
           <div class="kv">
             <div class="k">Selected oil</div><div class="v">${favOil}</div>
+            ${statusMessage ? `<div class="k">Status</div><div class="v">${statusMessage}</div>` : ''}
           </div>
         `;
         $statusCard.style.display = 'block';
