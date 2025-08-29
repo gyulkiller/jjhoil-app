@@ -390,7 +390,7 @@
     const path = location.pathname;
     if (/\/draw\/index\.html$|\/draw\/$/i.test(path)) applyOnDrawPage();
     if (/\/draw\/gallery\//i.test(path)) applyOnGalleryPage();
-    if (/\/tasting-note\/winners\//i.test(path)) applyOnWinnersPage();
+    if (/(\/tasting-note\/winners\/|\/winner\/)/i.test(path)) applyOnWinnersPage();
     if (/\/tasting-note\/result\//i.test(path)) applyOnTastingResultPage();
   }
 
