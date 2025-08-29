@@ -124,6 +124,7 @@
       hourlyDraw: { en: 'Draws every hour', ko: '매 시각 추첨합니다' },
       eventNotice1: { en: 'Oil tasting participation is required to enter the event.', ko: '이벤트 응모는 오일 테이스팅 참여가 필수입니다.' },
       eventNotice2: { en: 'If not participated, please visit the booth.', ko: '미참여 시 부스를 방문해 주세요.' },
+      eventNotice3: { en: 'The card and pencil are yours to keep as souvenirs.', ko: '카드와 색연필은 기념으로 가져가세요.' },
       nextDrawCalc: { en: 'Calculating time to next draw...', ko: '다음 추첨까지 계산 중...' },
       viewWinners: { en: 'View winners', ko: '당첨자 확인' },
       goGallery: { en: 'Open gallery', ko: '갤러리로 이동' },
@@ -311,7 +312,7 @@
     if (successTitle) successTitle.textContent = copy.draw.uploadedThanks[locale];
     setText('#successModal .success-note-title', copy.draw.hourlyDraw[locale]);
     const noteExtra = document.querySelector('#successModal .success-layer > div:nth-child(2)');
-    if (noteExtra) noteExtra.innerHTML = `${copy.draw.eventNotice1[locale]}<br>${copy.draw.eventNotice2[locale]}`;
+    if (noteExtra) noteExtra.innerHTML = `${copy.draw.eventNotice1[locale]}<br>${copy.draw.eventNotice2[locale]}<br>${copy.draw.eventNotice3[locale]}`;
     setText('#nextDrawCountdown', copy.draw.nextDrawCalc[locale]);
     setText('#successGoText', copy.draw.viewWinners[locale]);
     setText('#successGalleryText', copy.draw.goGallery[locale]);
