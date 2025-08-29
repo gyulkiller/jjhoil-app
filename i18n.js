@@ -29,10 +29,18 @@
   const copy = {
     draw: {
       startTitle: {
+        en: 'Circles, lines, and curves come together as one symbol.',
+        ko: '원·직선·곡선이 어우러진 하나의 상징.'
+      },
+      startDesc: {
+        en: 'From it, endless imagination begins—finish your own creation.',
+        ko: '그 속에서 펼쳐지는 무한한 상상력으로 나만의 그림을 완성해 보세요.'
+      },
+      startTitleAlt: {
         en: 'It Starts with a Word. You Finish the Story.',
         ko: '한 단어로 시작해 이야기를 완성하세요.'
       },
-      startDesc: {
+      startDescAlt: {
         en: 'It Starts with a Drop. You Finish the K-Food.',
         ko: '한 방울로 시작해 한식을 완성하세요.'
       },
@@ -273,8 +281,12 @@
     if (start) {
       const titleEl = start.querySelector('.title');
       const descEl = start.querySelector('.desc');
+      const titleAltEl = start.querySelector('.title-alt');
+      const descAltEl = start.querySelector('.desc-alt');
       if (titleEl) titleEl.textContent = copy.draw.startTitle[locale];
       if (descEl) descEl.textContent = copy.draw.startDesc[locale];
+      if (titleAltEl) titleAltEl.textContent = copy.draw.startTitleAlt[locale];
+      if (descAltEl) descAltEl.textContent = copy.draw.startDescAlt[locale];
       setText('#startOnlineBtn', copy.draw.startOnline[locale]);
       setText('#startUploadBtn', copy.draw.startUpload[locale]);
     }

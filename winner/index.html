@@ -301,8 +301,9 @@
       .jump { display: flex; justify-content: center; }
       .jump-btn { appearance: none; border: 1px solid rgba(0,0,0,0.15); background: linear-gradient(180deg, #ffe680 0%, #ffd54f 60%, #ffca28 100%); color: #111; border-radius: 999px; padding: 10px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 rgba(0,0,0,0.07), var(--shadow); transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; font-weight: 600; }
       .jump-btn:hover { transform: translateY(-1px); border-color: rgba(0,0,0,0.22); background: linear-gradient(180deg, #ffdf66 0%, #ffcc3d 60%, #ffb300 100%); box-shadow: 0 8px 18px rgba(0,0,0,0.32); }
-      .jump-btn .arrow { font-size: 14px; opacity: .85; animation: arrow-bounce .9s ease-in-out infinite alternate; }
-      @keyframes arrow-bounce { from { transform: translateY(-1px); } to { transform: translateY(3px); } }
+      .jump-btn .arrow { font-size: 16px; opacity: .9; display: inline-flex; will-change: transform; animation: arrow-slide-x .9s ease-in-out infinite alternate; }
+      .jump-btn .arrow svg { width: 20px; height: 20px; display: block; }
+      @keyframes arrow-slide-x { from { transform: translateX(0); } to { transform: translateX(6px); } }
 
       /* CTA link to /draw */
       .cta-draw { display: flex; justify-content: center; }
@@ -324,7 +325,7 @@
 
       /* Actions bar (top buttons unified) */
       .actions { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-      .action-btn { display: inline-flex; align-items: center; justify-content: center;}
+      .action-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
       .action-btn .label { white-space: nowrap; }
       .action-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 80%); }
 
@@ -410,15 +411,15 @@
           <span class="pill" id="next-draw-pill">Until next draw —</span>
         </div>
         <div class="actions">
-          <button id="jump-to-winners" type="button" class="action-btn jump-btn" title="See winners below">
+          <button id="jump-to-winners" type="button" class="action-btn outline-btn" title="See winners below">
             <span class="arrow">▼</span>
             <span class="label">See winners below</span>
           </button>
-          <a href="/draw" id="cta-draw-link" class="action-btn outline-btn" title="Join U Mission" rel="noopener">
+          <a href="/draw" id="cta-draw-link" class="action-btn jump-btn" title="Join U Mission" rel="noopener">
             <span class="label">Missed out? Boost your odds<br> — Join 유 Mission</span>
             <span class="arrow" aria-hidden="true">
               <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
-                <polygon points="3,2 13,8 3,14" fill="currentColor"/>
+                <path d="M2 6 H8 V3 L14 8 L8 13 V10 H2 Z" fill="currentColor"/>
               </svg>
             </span>
           </a>
