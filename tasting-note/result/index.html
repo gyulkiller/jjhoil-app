@@ -292,7 +292,7 @@
                 </span>
             </a>
         </div>
-        <div class="helper-text" id="winner-claim-note">Winners must claim within 30 minutes.</div>
+        <div class="helper-text" id="winner-claim-note">⚠️Winners must claim within 30 minutes.</div>
     </section>
     <style>
         .draw-section {
@@ -483,7 +483,27 @@
                 return isNaN(d.getTime()) ? null : d;
             }
             if (typeof value === 'string') {
-                const d = new Date(value);
+                const s = String(value).trim();
+                // If string has explicit timezone (Z or ±HH:MM), trust native parser
+                const hasExplicitTimezone = /[zZ]$|[+\-]\d{2}:\d{2}$/.test(s);
+                if (!hasExplicitTimezone) {
+                    // Handle ISO-like local strings without timezone as LOCAL time
+                    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(s);
+                    if (m) {
+                        const [, y, mo, d, hh, mm, ss] = m;
+                        const local = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || '0'), 0);
+                        return isNaN(local.getTime()) ? null : local;
+                    }
+                    // Handle common M/D/YYYY HH:mm(:ss)? format as LOCAL time
+                    const m2 = /^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(s);
+                    if (m2) {
+                        const [, mo2, d2, y2, hh2, mm2, ss2] = m2;
+                        const local2 = new Date(Number(y2), Number(mo2) - 1, Number(d2), Number(hh2), Number(mm2), Number(ss2 || '0'), 0);
+                        return isNaN(local2.getTime()) ? null : local2;
+                    }
+                }
+                // Fallback to native parsing
+                const d = new Date(s);
                 return isNaN(d.getTime()) ? null : d;
             }
             return null;
@@ -727,7 +747,7 @@
 
                     const datasets = [
                         {
-                            label: '참기름 138',
+                            label: 'OIL 138',
                             data: ds138,
                             backgroundColor: 'rgba(255, 235, 59, 0.3)',
                             borderColor: 'rgba(255, 235, 59, 1)',
@@ -738,7 +758,7 @@
                             pointHoverBorderColor: 'rgba(255, 235, 59, 1)'
                         },
                         {
-                            label: '참기름 167',
+                            label: 'OIL 167',
                             data: ds167,
                             backgroundColor: 'rgba(255, 152, 0, 0.3)',
                             borderColor: 'rgba(255, 152, 0, 1)',
@@ -749,7 +769,7 @@
                             pointHoverBorderColor: 'rgba(255, 152, 0, 1)'
                         },
                         {
-                            label: '참기름 178',
+                            label: 'OIL 178',
                             data: ds178,
                             backgroundColor: 'rgba(244, 67, 54, 0.3)',
                             borderColor: 'rgba(244, 67, 54, 1)',
