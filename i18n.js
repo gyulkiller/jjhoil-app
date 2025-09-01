@@ -290,7 +290,7 @@
       joinMissionTitle: { en: 'Join “유” Mission', ko: '“유” 미션 참여' },
       winnerClaimNote: { en: '⚠️Winners must claim within 30 minutes.', ko: '⚠️당첨자는 30분 이내 수령해야 합니다.' },
       emphasisLine1: { en: 'At the festival, try pairing it with a variety of foods.', ko: '페스티벌 현장에서 다양한 음식과 함께 곁들여 보세요.' },
-      emphasisLine2: { en: 'Just one drop of Golden Conscience oil creates a new harmony of flavors.', ko: '골든 양심참기름 한 방울이 새로운 풍미의 조화를 만듭니다.' },
+      emphasisLine2: { en: 'Just one drop of Golden Conscience oil creates a new harmony of flavors.', ko: '금빛 양심참기름 한 방울이 새로운 풍미의 조화를 만듭니다.' },
       favFoodsTitle: { en: 'Favorite food pairings', ko: 'Favorite food pairings' },
       aggregateTitle: { en: 'Oil Tasting Note — Overall Average', ko: '오일 테이스팅 노트 — 전체 평균' },
       oilPrefix: { en: 'OIL', ko: '참기름' },
