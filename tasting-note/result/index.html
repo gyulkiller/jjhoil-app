@@ -368,7 +368,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-fill-color: transparent;
             display: inline-block;
             margin-bottom: 10px;
             letter-spacing: 0.02em;
@@ -386,6 +385,55 @@
 
 
     
+
+    <style>
+        .oil-intro { max-width: 980px; margin: 12px auto 18px; }
+        .oil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .oil-card {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .oil-image { width: 100%; max-width: 220px; height: 220px; object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0,0,0,0.15)); }
+        .oil-lead { margin: 8px 0 4px; font-size: 13px; color: rgba(0,0,0,0.6); }
+        .oil-title { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+        .oil-138 { border-color: rgba(255, 235, 59, 0.45); }
+        .oil-167 { border-color: rgba(255, 152, 0, 0.45); }
+        .oil-178 { border-color: rgba(244, 67, 54, 0.45); }
+        .oil-138 .oil-title { background: linear-gradient(90deg, #FFEB3B, #FFD54F); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .oil-167 .oil-title { background: linear-gradient(90deg, #FFB74D, #FF9800); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .oil-178 .oil-title { background: linear-gradient(90deg, #FF8A65, #F44336); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @media (max-width: 960px) {
+            .oil-grid { grid-template-columns: 1fr; }
+            .oil-image { height: 200px; max-width: 200px; }
+        }
+    </style>
+
+    <section class="oil-intro" aria-label="Sesame oil introduction">
+        <div class="oil-grid">
+            <article class="oil-card oil-138">
+                <img src="img/138.png" alt="참기름 138" class="oil-image" loading="lazy">
+                <p class="oil-lead">가장 순수한 견과 향을 담아낸,</p>
+                <div class="oil-title">은은하고 섬세한 참기름 138</div>
+            </article>
+            <article class="oil-card oil-167">
+                <img src="img/167.png" alt="참기름 167" class="oil-image" loading="lazy">
+                <p class="oil-lead">참기름의 깊은 풍미를 정직하게 담아낸,</p>
+                <div class="oil-title">조화롭고 깊은 참기름 167</div>
+            </article>
+            <article class="oil-card oil-178">
+                <img src="img/178.png" alt="참기름 178" class="oil-image" loading="lazy">
+                <p class="oil-lead">묵직하게 집약된 절정의 풍미,</p>
+                <div class="oil-title">강렬하고 진한 참기름 178</div>
+            </article>
+        </div>
+    </section>
 
     <script>
         const ctx = document.getElementById('radarChart').getContext('2d');
@@ -422,7 +470,9 @@
             if (!titleEl) return;
             const nameKey = Object.keys(row).find(k => /이름/i.test(k) || /name/i.test(k));
             const userName = nameKey ? String(row[nameKey]).trim() : '';
-            const composed = userName ? `${userName}'s Oil Tasting Note` : 'Oil Tasting Note';
+            const composed = (window.I18N && I18N.t)
+                ? I18N.t('tasting', 'noteTitle', userName)
+                : (userName ? `${userName}'s Oil Tasting Note` : 'Oil Tasting Note');
             titleEl.textContent = composed;
             try { document.title = composed; } catch {}
         }
@@ -450,7 +500,10 @@
             const emphasis = document.querySelector('.emphasis-card');
             if (emphasis) emphasis.style.display = 'none';
             const titleEl = document.getElementById('titleBanner');
-            if (titleEl) titleEl.textContent = 'Oil Tasting Note — Overall Average';
+            if (titleEl) titleEl.textContent = (window.I18N && I18N.copy)
+                ? I18N.copy.tasting.aggregateTitle[I18N.locale]
+                : 'Oil Tasting Note — Overall Average';
+            try { document.title = (window.I18N && I18N.copy) ? I18N.copy.tasting.aggregateTitle[I18N.locale] : document.title; } catch {}
             const header = document.getElementById('headerText');
             if (header) header.innerHTML = `<span  class="header-pill">${(I18N && I18N.copy && I18N.copy.tasting && I18N.copy.tasting.allDelicious ? I18N.copy.tasting.allDelicious[I18N.locale] : 'All delicious')}</span>`;
         }
@@ -496,7 +549,7 @@
                     list.forEach(({label, count, code}) => {
                         const span = document.createElement('span');
                         span.className = 'ticker-item' + (code ? ` oil-${code}` : '');
-                        span.textContent = `OIL ${code} · ${label} × ${count}`;
+                        span.textContent = `${(window.I18N && I18N.copy) ? I18N.copy.tasting.oilPrefix[I18N.locale] : 'OIL'} ${code} · ${label} × ${count}`;
                         frag.appendChild(span);
                     });
                     return frag;
@@ -508,7 +561,9 @@
         }
 
         function createChart(datasets) {
-            const labels = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
+            const labels = (window.I18N && I18N.copy)
+                ? I18N.copy.tasting.metricsLabels[I18N.locale]
+                : ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
             if (radarChart) {
                 radarChart.destroy();
             }
@@ -704,21 +759,23 @@
             if (!pill) return;
             const submittedAt = findSubmittedAt(row);
             if (!submittedAt) {
-                pill.textContent = 'Submission time unavailable.';
+                pill.textContent = (window.I18N && I18N.copy) ? I18N.copy.tasting.drawPillNoTime[I18N.locale] : 'Submission time unavailable.';
                 return;
             }
             const drawEnd = computeDrawEndFromSubmitted(submittedAt);
             if (!drawEnd) {
-                pill.textContent = 'Submission time unavailable.';
+                pill.textContent = (window.I18N && I18N.copy) ? I18N.copy.tasting.drawPillNoTime[I18N.locale] : 'Submission time unavailable.';
                 return;
             }
             const now = Date.now();
             const fav = findFavoriteOil(row);
-            const suffix = fav ? `You selected the ${fav}. — ` : '';
+            const suffix = fav ? ((window.I18N && I18N.t) ? I18N.t('tasting', 'drawPillSelectedPrefix', fav) : `You selected the ${fav}. — `) : '';
             if (now < drawEnd.getTime()) {
-                pill.textContent = `${suffix}Your draw will be at ${toLocalYMDH(drawEnd)} (local time)`;
+                const at = toLocalYMDH(drawEnd);
+                pill.textContent = suffix + ((window.I18N && I18N.t) ? I18N.t('tasting', 'drawPillWillBeAt', at) : `Your draw will be at ${at} (local time)`);
             } else {
-                pill.textContent = `${suffix}Your draw at ${toLocalYMDH(drawEnd)} has completed.`;
+                const at = toLocalYMDH(drawEnd);
+                pill.textContent = suffix + ((window.I18N && I18N.t) ? I18N.t('tasting', 'drawPillCompletedAt', at) : `Your draw at ${at} has completed.`);
             }
         }
 
@@ -881,10 +938,11 @@
                         const ds167 = buildData(row, 167);
                         const ds178 = buildData(row, 178);
                         if (!hasValidDatasets([ds138, ds167, ds178])) throw new Error('NO_VALID_DATA');
+                        const oilPrefix = (window.I18N && I18N.copy) ? I18N.copy.tasting.oilPrefix[I18N.locale] : 'OIL';
                         const datasets = [
-                            { label: 'OIL 138', data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.3)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
-                            { label: 'OIL 167', data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.3)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
-                            { label: 'OIL 178', data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.3)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
+                            { label: `${oilPrefix} 138`, data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.3)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
+                            { label: `${oilPrefix} 167`, data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.3)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
+                            { label: `${oilPrefix} 178`, data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.3)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
                         ];
                         createChart(datasets);
                         renderTitle(row);
@@ -897,10 +955,12 @@
                         const ds167 = averageDatasets(rows, 167);
                         const ds178 = averageDatasets(rows, 178);
                         if (!hasValidDatasets([ds138, ds167, ds178])) throw new Error('NO_VALID_DATA');
+                        const oilPrefix = (window.I18N && I18N.copy) ? I18N.copy.tasting.oilPrefix[I18N.locale] : 'OIL';
+                        const avgSuffix = (window.I18N && I18N.copy) ? I18N.copy.tasting.avgSuffix[I18N.locale] : ' (Avg)';
                         const datasets = [
-                            { label: 'OIL 138 (Avg)', data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.25)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
-                            { label: 'OIL 167 (Avg)', data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.25)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
-                            { label: 'OIL 178 (Avg)', data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.25)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
+                            { label: `${oilPrefix} 138${avgSuffix}`, data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.25)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
+                            { label: `${oilPrefix} 167${avgSuffix}`, data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.25)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
+                            { label: `${oilPrefix} 178${avgSuffix}`, data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.25)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
                         ];
                         createChart(datasets);
                         renderAggregateMeta();

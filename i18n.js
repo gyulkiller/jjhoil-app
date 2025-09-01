@@ -268,8 +268,37 @@
       oil138: { en: 'Sesame Oil 138', ko: '참기름 138' },
       oil167: { en: 'Sesame Oil 167', ko: '참기름 167' },
       oil178: { en: 'Sesame Oil 178', ko: '참기름 178' },
+      // Oil intro (cards under the chart)
+      oilIntro138Lead: { en: 'Capturing the purest nutty aroma,', ko: '가장 순수한 견과 향을 담아낸,' },
+      oilIntro138Title: { en: 'Subtle and delicate Sesame Oil 138', ko: '은은하고 섬세한 참기름 138' },
+      oilIntro167Lead: { en: 'An honest expression of rich sesame flavor,', ko: '참기름의 깊은 풍미를 정직하게 담아낸,' },
+      oilIntro167Title: { en: 'Balanced and deep Sesame Oil 167', ko: '조화롭고 깊은 참기름 167' },
+      oilIntro178Lead: { en: 'Dense, peak-level richness,', ko: '묵직하게 집약된 절정의 풍미,' },
+      oilIntro178Title: { en: 'Bold and intense Sesame Oil 178', ko: '강렬하고 진한 참기름 178' },
       allDelicious: { en: 'They\'re all delicious 😋', ko: '모두 맛있을 거예요😋' },
-      waitingWithRetry: (retry, secs, lang) => (lang === 'ko' ? `데이터를 기다리는 중… (재시도 ${retry}, ${secs}초 후)` : `Waiting for data… (retry ${retry}, in ${secs}s)`) 
+      waitingWithRetry: (retry, secs, lang) => (lang === 'ko' ? `데이터를 기다리는 중… (재시도 ${retry}, ${secs}초 후)` : `Waiting for data… (retry ${retry}, in ${secs}s)`),
+      // Result page specific
+      loaderHint: { en: 'If loading takes too long, please refresh this page.', ko: '로딩이 오래 걸리면 이 페이지를 새로고침해 주세요.' },
+      drawPillPending: { en: 'Determining your draw time…', ko: '추첨 시간을 계산하는 중…' },
+      drawPillNoTime: { en: 'Submission time unavailable.', ko: '제출 시간을 확인할 수 없습니다.' },
+      drawPillSelectedPrefix: (fav, lang) => (lang === 'ko' ? `선택한 오일 ${fav}. — ` : `You selected the ${fav}. — `),
+      drawPillWillBeAt: (time, lang) => (lang === 'ko' ? `다음 추첨은 로컬 시간 ${time}에 진행됩니다.` : `Your draw will be at ${time} (local time)`),
+      drawPillCompletedAt: (time, lang) => (lang === 'ko' ? `${time} 추첨이 완료되었습니다.` : `Your draw at ${time} has completed.`),
+      seeWinnersLabel: { en: 'See winners', ko: '당첨자 확인' },
+      seeWinnersTitle: { en: 'See winners', ko: '당첨자 확인' },
+      joinMissionLabel: { en: 'Boost your odds — Join “유” Mission', ko: '당첨 확률 높이기 — “유” 미션 참여' },
+      joinMissionTitle: { en: 'Join “유” Mission', ko: '“유” 미션 참여' },
+      winnerClaimNote: { en: '⚠️Winners must claim within 30 minutes.', ko: '⚠️당첨자는 30분 이내 수령해야 합니다.' },
+      emphasisLine1: { en: 'At the festival, try pairing it with a variety of foods.', ko: '페스티벌 현장에서 다양한 음식과 함께 곁들여 보세요.' },
+      emphasisLine2: { en: 'Just one drop of Golden Conscience oil creates a new harmony of flavors.', ko: '골든 양심참기름 한 방울이 새로운 풍미의 조화를 만듭니다.' },
+      favFoodsTitle: { en: 'Favorite food pairings', ko: 'Favorite food pairings' },
+      aggregateTitle: { en: 'Oil Tasting Note — Overall Average', ko: '오일 테이스팅 노트 — 전체 평균' },
+      oilPrefix: { en: 'OIL', ko: '참기름' },
+      avgSuffix: { en: ' (Avg)', ko: ' (평균)' },
+      metricsLabels: {
+        en: ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'],
+        ko: ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS']
+      }
     }
   };
 
@@ -393,6 +422,47 @@
   function applyOnTastingResultPage() {
     const loader = document.querySelector('.loader-text');
     if (loader) loader.textContent = copy.tasting.loading[locale];
+    const loaderHint = document.getElementById('loader-hint');
+    if (loaderHint) loaderHint.textContent = copy.tasting.loaderHint[locale];
+    const drawPill = document.getElementById('user-draw-pill');
+    if (drawPill) drawPill.textContent = copy.tasting.drawPillPending[locale];
+    const seeWinnersBtn = document.getElementById('see-winners-btn');
+    if (seeWinnersBtn) {
+      seeWinnersBtn.setAttribute('title', copy.tasting.seeWinnersTitle[locale]);
+      const label = seeWinnersBtn.querySelector('.label');
+      if (label) label.textContent = copy.tasting.seeWinnersLabel[locale];
+    }
+    const missionBtn = document.getElementById('join-mission-btn');
+    if (missionBtn) {
+      missionBtn.setAttribute('title', copy.tasting.joinMissionTitle[locale]);
+      const label = missionBtn.querySelector('.label');
+      if (label) label.textContent = copy.tasting.joinMissionLabel[locale];
+    }
+    const claimNote = document.getElementById('winner-claim-note');
+    if (claimNote) claimNote.textContent = copy.tasting.winnerClaimNote[locale];
+    const favFoodTitle = document.getElementById('favFoodTitle');
+    if (favFoodTitle) favFoodTitle.textContent = copy.tasting.favFoodsTitle[locale];
+    const emph1 = document.querySelector('.emphasis-card .line1');
+    if (emph1) emph1.textContent = copy.tasting.emphasisLine1[locale];
+    const emph2 = document.querySelector('.emphasis-card .line2');
+    if (emph2) emph2.textContent = copy.tasting.emphasisLine2[locale];
+
+    // Oil intro section (three cards)
+    try {
+      const codes = [138, 167, 178];
+      const cards = document.querySelectorAll('.oil-intro .oil-card');
+      cards.forEach((card, idx) => {
+        const code = codes[idx] || 138;
+        const leadEl = card.querySelector('.oil-lead');
+        const titleEl = card.querySelector('.oil-title');
+        const imgEl = card.querySelector('img');
+        const leadKey = `oilIntro${code}Lead`;
+        const titleKey = `oilIntro${code}Title`;
+        if (leadEl && copy.tasting[leadKey]) leadEl.textContent = copy.tasting[leadKey][locale];
+        if (titleEl && copy.tasting[titleKey]) titleEl.textContent = copy.tasting[titleKey][locale];
+        if (imgEl && copy.tasting[`oil${code}`]) imgEl.alt = copy.tasting[`oil${code}`][locale];
+      });
+    } catch {}
   }
 
   function applyI18N() {
