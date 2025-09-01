@@ -77,17 +77,23 @@
           '  <li>The Company may edit, modify, or transform the image if necessary.</li>' +
           '  <li>The Company will not use the image in a way that damages your reputation or credit.</li>' +
           '</ul>\n\n' +
-          '<strong>3. Privacy and Compliance</strong>\n' +
+          '<strong>3. Drawing Policy</strong>\n' +
+          '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
+          '  <li>Drawings must not contain sexual, violent, discriminatory, or otherwise offensive content.</li>' +
+          '  <li>Illegal content or depictions that may cause harm are strictly prohibited.</li>' +
+          '  <li>The organizer may delete drawings that violate this policy without prior notice, and repeated violations may result in participation restrictions.</li>' +
+          '</ul>\n\n' +
+          '<strong>4. Privacy and Compliance</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>This consent complies with Canada\'s PIPEDA and applicable provincial laws.</li>' +
           '  <li>You may withdraw consent at any time in writing; after withdrawal, new uses will cease immediately (withdrawal cannot affect materials already used).</li>' +
           '</ul>\n\n' +
-          '<strong>4. Refusal and Limitations</strong>\n' +
+          '<strong>5. Refusal and Limitations</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>You have the right to refuse consent for image use.</li>' +
           '  <li>However, refusal may prevent participation in the event (promotions, giveaways, etc.).</li>' +
           '</ul>\n\n' +
-          '<strong>5. Limitation of Liability</strong>\n' +
+          '<strong>6. Limitation of Liability</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>You guarantee that your image does not infringe third-party copyright or portrait rights, and agree to bear responsibility in case of disputes.</li>' +
           '</ul>\n\n' +
@@ -106,17 +112,23 @@
           '  <li>회사는 필요에 따라 해당 이미지를 수정, 편집, 변형하여 사용할 수 있습니다.</li>' +
           '  <li>단, 회사는 본인의 명예나 신용을 훼손하는 방식으로 이미지를 사용하지 않습니다.</li>' +
           '</ul>\n\n' +
-          '<strong>3. 개인정보 보호 및 캐나다 법 준수</strong>\n' +
+          '<strong>3. 그림 그리기 정책</strong>\n' +
+          '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
+          '  <li>그림에는 선정적, 폭력적, 차별적 또는 불쾌감을 줄 수 있는 내용을 포함할 수 없습니다.</li>' +
+          '  <li>불법적인 내용이나 타인에게 해를 끼칠 수 있는 표현은 엄격히 금지됩니다.</li>' +
+          '  <li>운영자는 본 정책을 위반한 그림을 사전 예고 없이 삭제할 수 있으며, 반복 위반 시 행사 참여가 제한될 수 있습니다.</li>' +
+          '</ul>\n\n' +
+          '<strong>4. 개인정보 보호 및 캐나다 법 준수</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>본 동의서는 캐나다의 개인정보보호법(PIPEDA) 및 관련 주 법률을 준수합니다.</li>' +
           '  <li>본인은 언제든지 서면 요청을 통해 동의를 철회할 수 있으며, 철회 시 이후의 신규 사용은 즉시 중단됩니다. (단, 이미 사용된 자료에 대해서는 철회가 불가능합니다.)</li>' +
           '</ul>\n\n' +
-          '<strong>4. 동의 거부 시 불이익 안내</strong>\n' +
+          '<strong>5. 동의 거부 시 불이익 안내</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>본인은 이미지 사용에 대한 동의를 거부할 권리가 있습니다.</li>' +
           '  <li>다만, 동의하지 않을 경우 본 이벤트(프로모션/경품 행사 등) 참여가 불가능함을 이해합니다.</li>' +
           '</ul>\n\n' +
-          '<strong>5. 책임 제한</strong>\n' +
+          '<strong>6. 책임 제한</strong>\n' +
           '<ul style="margin:0 0 8px 16px; padding:0; list-style:disc;">' +
           '  <li>본인은 해당 이미지가 제3자의 저작권이나 초상권을 침해하지 않음을 보장하며, 만약 분쟁이 발생할 경우 본인이 책임을 부담합니다.</li>' +
           '</ul>\n\n' +
