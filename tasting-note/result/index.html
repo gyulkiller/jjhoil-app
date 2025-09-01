@@ -257,6 +257,45 @@
             .actions { margin: 2px 0 4px; }
             .helper-text { margin-bottom: 6px; }
         }
+
+        /* Food ticker (marquee-like) */
+        .food-ticker {
+            width: 100%;
+            max-width: 700px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.12);
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            margin: 6px 0 4px 0;
+        }
+        .food-ticker .track {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            padding: 10px 12px;
+            animation: ticker-scroll 25s linear infinite;
+            will-change: transform;
+        }
+        .food-ticker .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,0.12);
+            background: #FFF;
+            color: #111;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .food-ticker .ticker-item.oil-138 { background: rgba(255, 235, 59, 0.18); border-color: rgba(255, 235, 59, 0.7); }
+        .food-ticker .ticker-item.oil-167 { background: rgba(255, 152, 0, 0.18); border-color: rgba(255, 152, 0, 0.7); }
+        .food-ticker .ticker-item.oil-178 { background: rgba(244, 67, 54, 0.18); border-color: rgba(244, 67, 54, 0.7); }
+        @keyframes ticker-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
     </style>
 </head>
 <body>
@@ -315,13 +354,33 @@
         <canvas id="radarChart"></canvas>
         <div class="center-image"></div>
     </div>
-    <div id="headerText" class="header-text"></div>
+    
 
     <div class="emphasis-card" aria-live="polite">
         <div class="line1">At the festival, try pairing it with a variety of foods.</div>
         <div class="line2 emphasis-gradient">Just one drop of Golden Conscience oil creates a new harmony of flavors.</div>
     </div>
-
+    <style>
+        .fav-food-title-gradient {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ffeb3b 0%, #ff9800 50%, #f44336 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 10px;
+            letter-spacing: 0.02em;
+        }
+    </style>
+    <div class="fav-food-title-gradient" id="favFoodTitle">
+        Favorite food pairings
+    </div>
+    <div id="foodTicker" class="food-ticker" style="display:none;">
+        <div id="foodTickerTrack" class="track"></div>
+    </div>
+    <div id="headerText" class="header-text"></div>
 
 
 
@@ -336,6 +395,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const aParam = urlParams.get('a');
         const API_URL = BASE_URL + (aParam ? ('?a=' + encodeURIComponent(aParam)) : '');
+        const isAggregateMode = !aParam;
 
         let radarChart = null;
 
@@ -365,6 +425,86 @@
             const composed = userName ? `${userName}'s Oil Tasting Note` : 'Oil Tasting Note';
             titleEl.textContent = composed;
             try { document.title = composed; } catch {}
+        }
+
+        function averageDatasets(rows, oilCode) {
+            const metricsOrder = ['BODY', 'COLOR', 'FINISH', 'AROMA', 'FRESHNESS', 'BITTERNESS'];
+            const sums = new Array(metricsOrder.length).fill(0);
+            const counts = new Array(metricsOrder.length).fill(0);
+            for (const row of rows) {
+                const ds = buildData(row, oilCode);
+                for (let i = 0; i < ds.length; i += 1) {
+                    const v = ds[i];
+                    if (Number.isFinite(v)) {
+                        sums[i] += v;
+                        counts[i] += 1;
+                    }
+                }
+            }
+            return sums.map((sum, i) => counts[i] > 0 ? +(sum / counts[i]).toFixed(2) : null);
+        }
+
+        function renderAggregateMeta() {
+            const drawSection = document.querySelector('.draw-section');
+            if (drawSection) drawSection.style.display = 'none';
+            const emphasis = document.querySelector('.emphasis-card');
+            if (emphasis) emphasis.style.display = 'none';
+            const titleEl = document.getElementById('titleBanner');
+            if (titleEl) titleEl.textContent = 'Oil Tasting Note — Overall Average';
+            const header = document.getElementById('headerText');
+            if (header) header.innerHTML = `<span  class="header-pill">${(I18N && I18N.copy && I18N.copy.tasting && I18N.copy.tasting.allDelicious ? I18N.copy.tasting.allDelicious[I18N.locale] : 'All delicious')}</span>`;
+        }
+
+        function renderFoodTickerFromRows(rows) {
+            try {
+                // oil별로 분리된 빈도 집계
+                const perOil = {
+                    138: new Map(),
+                    167: new Map(),
+                    178: new Map()
+                };
+                const CODES = [138, 167, 178];
+                for (const row of rows) {
+                    for (const code of CODES) {
+                        const items = extractFoodSelections(row, code) || [];
+                        for (const it of items) {
+                            const key = String(it).trim();
+                            if (!key) continue;
+                            const map = perOil[code];
+                            map.set(key, (map.get(key) || 0) + 1);
+                        }
+                    }
+                }
+                // oil 코드 순서대로 정렬된 라벨 리스트 생성 (각 oil 내 빈도순)
+                const list = [];
+                for (const code of CODES) {
+                    const arr = Array.from(perOil[code].entries()).sort((a,b) => b[1] - a[1]);
+                    for (const [label, count] of arr) {
+                        list.push({ label, count, code });
+                    }
+                }
+                const wrap = document.getElementById('foodTicker');
+                const track = document.getElementById('foodTickerTrack');
+                if (!wrap || !track) return;
+                track.innerHTML = '';
+                if (list.length === 0) {
+                    wrap.style.display = 'none';
+                    return;
+                }
+                const makeSegment = () => {
+                    const frag = document.createDocumentFragment();
+                    list.forEach(({label, count, code}) => {
+                        const span = document.createElement('span');
+                        span.className = 'ticker-item' + (code ? ` oil-${code}` : '');
+                        span.textContent = `OIL ${code} · ${label} × ${count}`;
+                        frag.appendChild(span);
+                    });
+                    return frag;
+                };
+                track.appendChild(makeSegment());
+                track.appendChild(makeSegment());
+                wrap.style.display = 'block';
+            } catch (e) {}
         }
 
         function createChart(datasets) {
@@ -733,58 +873,39 @@
                     const response = await fetch(API_URL, { cache: 'no-store' });
                     if (!response.ok) throw new Error('HTTP ' + response.status);
                     const data = await response.json();
-                    const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+                    if (!Array.isArray(data) || data.length === 0) throw new Error('NO_DATA');
 
-                    if (!row) throw new Error('NO_DATA');
-
-                    const ds138 = buildData(row, 138);
-                    const ds167 = buildData(row, 167);
-                    const ds178 = buildData(row, 178);
-
-                    if (!hasValidDatasets([ds138, ds167, ds178])) {
-                        throw new Error('NO_VALID_DATA');
+                    if (!isAggregateMode) {
+                        const row = data[0];
+                        const ds138 = buildData(row, 138);
+                        const ds167 = buildData(row, 167);
+                        const ds178 = buildData(row, 178);
+                        if (!hasValidDatasets([ds138, ds167, ds178])) throw new Error('NO_VALID_DATA');
+                        const datasets = [
+                            { label: 'OIL 138', data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.3)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
+                            { label: 'OIL 167', data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.3)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
+                            { label: 'OIL 178', data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.3)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
+                        ];
+                        createChart(datasets);
+                        renderTitle(row);
+                        renderHeaderLines(row);
+                        renderUserDrawInfo(row);
+                        const wrap = document.getElementById('foodTicker'); if (wrap) wrap.style.display = 'none';
+                    } else {
+                        const rows = data;
+                        const ds138 = averageDatasets(rows, 138);
+                        const ds167 = averageDatasets(rows, 167);
+                        const ds178 = averageDatasets(rows, 178);
+                        if (!hasValidDatasets([ds138, ds167, ds178])) throw new Error('NO_VALID_DATA');
+                        const datasets = [
+                            { label: 'OIL 138 (Avg)', data: ds138, backgroundColor: 'rgba(255, 235, 59, 0.25)', borderColor: 'rgba(255, 235, 59, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 235, 59, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 235, 59, 1)' },
+                            { label: 'OIL 167 (Avg)', data: ds167, backgroundColor: 'rgba(255, 152, 0, 0.25)', borderColor: 'rgba(255, 152, 0, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(255, 152, 0, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(255, 152, 0, 1)' },
+                            { label: 'OIL 178 (Avg)', data: ds178, backgroundColor: 'rgba(244, 67, 54, 0.25)', borderColor: 'rgba(244, 67, 54, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(244, 67, 54, 1)', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: 'rgba(244, 67, 54, 1)' }
+                        ];
+                        createChart(datasets);
+                        renderAggregateMeta();
+                        renderFoodTickerFromRows(rows);
                     }
-
-                    const datasets = [
-                        {
-                            label: 'OIL 138',
-                            data: ds138,
-                            backgroundColor: 'rgba(255, 235, 59, 0.3)',
-                            borderColor: 'rgba(255, 235, 59, 1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgba(255, 235, 59, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(255, 235, 59, 1)'
-                        },
-                        {
-                            label: 'OIL 167',
-                            data: ds167,
-                            backgroundColor: 'rgba(255, 152, 0, 0.3)',
-                            borderColor: 'rgba(255, 152, 0, 1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgba(255, 152, 0, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(255, 152, 0, 1)'
-                        },
-                        {
-                            label: 'OIL 178',
-                            data: ds178,
-                            backgroundColor: 'rgba(244, 67, 54, 0.3)',
-                            borderColor: 'rgba(244, 67, 54, 1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgba(244, 67, 54, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(244, 67, 54, 1)'
-                        }
-                    ];
-
-                    createChart(datasets);
-                    renderTitle(row);
-                    renderHeaderLines(row);
-                    renderUserDrawInfo(row);
                     
                     hideLoader();
                     break;
