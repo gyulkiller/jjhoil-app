@@ -258,8 +258,8 @@
     }
     /* 성공 모달 내 검은 레이어 */
     #successModal .success-layer { background: rgba(0,0,0,0.9); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-    #successModal .success-note-title { color: #fff; font-weight: 700; font-size: 14px; }
-    #successModal .success-note-time { color: #9fc9ff; font-size: 13px; }
+    #successModal .success-note-title { color: #fff; font-weight: 700; font-size: 14px; display: none}
+    #successModal .success-note-time { color: #9fc9ff; font-size: 13px; display: none}
     .progress-wrap { width: min(360px, 70vw); height: 14px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
     .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #9fc9ff, #0a84ff); }
     .progress-text { margin-top: 8px; text-align: center; font-size: 13px; color: #333; }
@@ -619,13 +619,18 @@
       <div style="font-weight:700; margin-bottom:6px;">Upload complete. Thank you!</div>
       <div class="success-layer">
         <div class="success-note-title">Draws every hour</div>
-        <div style="font-size:13px; color:#d32f2f; margin-top:4px;">
+        <div style="font-size:13px; color:#d32f2f; margin-top:4px; display: none;">
           Oil tasting participation is required to enter the event.<br>
           If not participated, please visit the booth.
         </div>
+        <div style="font-size:13px;color:#d32f2f;margin-top:4px">
+          행사 기간 동안 추가로 그림그리기 미션을 완료하실 경우 건당 당첨 확률이 올라갑니다.<br>
+          당첨자분께는 개별로 연락드리겠습니다.<br>
+          카드는 기념으로 가져가세요.</div>
+
         <div class="success-note-time" id="nextDrawCountdown">Calculating time to next draw...</div>
         <div class="actions" style="margin-top:4px; flex-direction:column; gap:10px; align-items:stretch;">
-          <a id="successGoBtn" href="https://app.jjhoil.com/winner/" target="_blank" rel="noopener">
+          <a id="successGoBtn" href="https://app.jjhoil.com/winner/" target="_blank" rel="noopener" style="display: none;">
             <button type="button" style="background:#0a84ff; color:#fff; border-color:rgba(10,132,255,0.6); display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
               <i data-lucide="trophy"></i>
               <span id="successGoText">View winners</span>
