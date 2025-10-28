@@ -238,6 +238,7 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
             text-align: center;
             color: #111;
+            display: none;
         }
         .emphasis-card .line1 { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
         .emphasis-card .line2 { font-weight: 800; font-size: 16px; margin-top: 4px; }
@@ -341,6 +342,7 @@
             margin: 0 auto 18px auto;
             max-width: 700px;
             box-sizing: border-box;
+            display: none;
         }
         @media (max-width: 768px) {
             .draw-section {
@@ -348,6 +350,29 @@
                 margin-bottom: 8px;
             }
         }
+    </style>
+    
+    <section id="favOilTop" class="fav-top" style="display:none;" aria-label="Favorite oil">
+        <div class="fav-top-inner">
+            <div class="fav-top-label" id="favTopLabel">가장 선호한 오일</div>
+            <div>가장 선호하신 오일은 <span class="fav-top-value" id="favTopValue"></span>입니다. 추첨 당사자분들께는 개별 연락드리겠습니다.</div>            
+        </div>
+        <div class="fav-top-btn"><a href="/draw" id="see-winners-btn" class="outline-btn" title="“유” 미션 참여" rel="noopener">
+            <span id="" class="label">당첨 확률 높이기 — “유” 미션 참여</span>
+            <span class="arrow" aria-hidden="true">
+                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                    <polygon points="3,2 13,8 3,14" fill="currentColor"></polygon>
+                </svg>
+            </span>
+        </a></div>
+    </section>
+    <style>
+        .fav-top { max-width: 700px; margin: 6px auto 10px; background: #ccc; padding: 10px; border-radius: 12px; }
+        .fav-top-inner { display: flex; align-items: baseline; gap: 8px; padding: 10px 12px; border: 1px solid rgba(0,0,0,0.12); background: #fff; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+        .fav-top-label { font-weight: 800; font-size: 14px; color: #111; }
+        .fav-top-value { font-weight: 800; display: contents; }
+        .fav-top-btn { text-align: center; margin-top: 10px; }
+        @media (max-width: 480px) { .fav-top { margin: 4px auto 8px; }}
     </style>
     <div id="titleBanner" class="title-banner"></div>
     <div class="chart-container">
@@ -385,6 +410,40 @@
 
 
     
+    <div id="favOilPill" class="meta" style="display:none; margin-top: 4px;">
+        <span class="pill" id="favOilPillLabel"></span>
+    </div>
+
+
+    <section class="selected-foods" aria-label="Selected food pairings">
+        <div class="selected-row">
+            <div class="selected-col oil-138">
+                <div class="selected-title">OIL 138</div>
+                <div id="foods-138" class="badges"></div>
+                <div id="reason-138" class="reason"></div>
+            </div>
+            <div class="selected-col oil-167">
+                <div class="selected-title">OIL 167</div>
+                <div id="foods-167" class="badges"></div>
+                <div id="reason-167" class="reason"></div>
+            </div>
+            <div class="selected-col oil-178">
+                <div class="selected-title">OIL 178</div>
+                <div id="foods-178" class="badges"></div>
+                <div id="reason-178" class="reason"></div>
+            </div>
+        </div>
+    </section>
+    <style>
+        .selected-foods { max-width: 980px; margin: 8px auto 12px; }
+        .selected-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .selected-col { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+        .selected-title { font-weight: 800; font-size: 14px; margin-bottom: 8px; color: #111; }
+        .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+        .badge { display: inline-flex; align-items: center; padding: 6px 8px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.12); background: #FFF; color: #111; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .reason { margin-top: 6px; font-size: 12px; color: rgba(0,0,0,0.7); }
+        @media (max-width: 960px) { .selected-row { grid-template-columns: 1fr; } }
+    </style>
 
     <style>
         .oil-intro { max-width: 980px; margin: 12px auto 18px; }
@@ -448,8 +507,35 @@
         let radarChart = null;
 
         function getMetricValue(row, oilCode, metricPrefix) {
-            const targetKey = Object.keys(row).find(key => key.startsWith(metricPrefix) && key.includes(String(oilCode)));
-            if (!targetKey) return null;
+            const oilToken = String(oilCode);
+            const englishMetric = String(metricPrefix).replace(/\.[\s\t]*$/, ''); // e.g., 'COLOR. ' -> 'COLOR'
+            const keys = Object.keys(row);
+
+            // Collect candidate keys by priority:
+            // 1) Starts with 'METRIC. ' and includes oil code (legacy format)
+            // 2) Contains '(METRIC)' and includes oil code (new format like '색상(COLOR). ...')
+            // 3) Starts with known Korean metric label and includes oil code
+            const candidates = [];
+            const koMetricMap = {
+                BODY: '무게감',
+                COLOR: '색상',
+                FINISH: '여운',
+                AROMA: '향',
+                FRESHNESS: '신선함',
+                BITTERNESS: '쓴맛'
+            };
+            const koLabel = koMetricMap[englishMetric];
+
+            for (const key of keys) {
+                if (!key.includes(oilToken)) continue;
+                if (key.startsWith(metricPrefix)) { candidates.push({ key, pr: 1 }); continue; }
+                if (key.includes(`(${englishMetric})`)) { candidates.push({ key, pr: 2 }); continue; }
+                if (koLabel && key.startsWith(koLabel)) { candidates.push({ key, pr: 3 }); continue; }
+            }
+
+            if (candidates.length === 0) return null;
+            candidates.sort((a, b) => a.pr - b.pr);
+            const targetKey = candidates[0].key;
             const value = Number(row[targetKey]);
             return Number.isFinite(value) ? value : null;
         }
@@ -745,13 +831,48 @@
             if (!key) key = keys.find(k => /oil/i.test(k) && /(favorite|favourite|best|preferred|liked)/i.test(k));
             // Fallback: Korean phrasing including oil or sesame
             if (!key) {
-                key = keys.find(k => /(최애|선호|베스트|가장\s*좋)/.test(k) && /(오일|참기름)/.test(k));
+                key = keys.find(k => /(최애|선호|베스트|가장\s*좋|가장\s*선호)/.test(k) && /(오일|참기름)/.test(k));
             }
             if (!key) return '';
             const v = row[key];
             if (v == null) return '';
             const s = String(v).trim();
             return s;
+        }
+
+        function normalizeFavOilToCode(label) {
+            if (!label) return null;
+            const s = String(label);
+            // direct code mentions
+            if (/138/.test(s)) return 138;
+            if (/167/.test(s)) return 167;
+            if (/178/.test(s)) return 178;
+            // common Korean phrasing
+            if (/138|왼쪽|라이트|순한|은은/.test(s)) return 138;
+            if (/167|중간|밸런스|조화/.test(s)) return 167;
+            if (/178|진한|강렬|묵직/.test(s)) return 178;
+            return null;
+        }
+
+        function renderFavoriteOilTop(row) {
+            try {
+                const wrap = document.getElementById('favOilTop');
+                const valueEl = document.getElementById('favTopValue');
+                const labelEl = document.getElementById('favTopLabel');
+                if (!wrap || !valueEl || !labelEl) return;
+                const fav = findFavoriteOil(row);
+                if (!fav) { wrap.style.display = 'none'; return; }
+                const base = String(fav).replace(/\s*\([^)]*\)\s*$/,'').trim();
+                const title = base || fav;
+                // i18n-safe label
+                if (window.I18N && I18N.t) {
+                    try { labelEl.textContent = I18N.t('tasting', 'favoriteOilTopLabel'); } catch {}
+                } else {
+                    labelEl.textContent = '가장 선호한 오일';
+                }
+                valueEl.textContent = title;
+                wrap.style.display = 'block';
+            } catch {}
         }
 
         function renderUserDrawInfo(row) {
@@ -796,16 +917,12 @@
                         : '';
                     if (!fullLabel) return;
                     const dashIdx = fullLabel.indexOf(' – ');
-                    if (dashIdx > -1) {
-                        const category = fullLabel.substring(0, dashIdx).trim();
-                        const itemsStr = fullLabel.substring(dashIdx + 3).trim();
-                        const items = itemsStr.split(',').map(s => s.trim()).filter(Boolean);
-                        if (items.length > 0) {
-                            selections.add(`${category} – ${items[0]}`);
-                            for (let i = 1; i < items.length; i += 1) {
-                                selections.add(items[i]);
-                            }
-                        }
+                    // 지원: 긴 대시(—), 짧은 대시(–), 일반 하이픈(-)
+                    const dash = [' — ', ' – ', ' - '].find(d => fullLabel.indexOf(d) > -1);
+                    const idx = dash ? fullLabel.indexOf(dash) : -1;
+                    if (idx > -1) {
+                        const category = fullLabel.substring(0, idx).trim();
+                        if (category) selections.add(category);
                     }
                 }
             });
@@ -826,10 +943,19 @@
                 !k.includes('? (')
             );
             if (stringKey && typeof row[stringKey] === 'string' && row[stringKey].trim().length > 0) {
-                row[stringKey].split(',').forEach(item => {
-                    const t = item.trim();
+                const s = row[stringKey].trim();
+                // 패턴: (시작 또는 ",") 다음에 카테고리, 대시, 그 뒤 예시들
+                const re = /(?:^|,)\s*([^,]+?)\s*(?:—|–|-)\s*[^,]+/g;
+                let m;
+                while ((m = re.exec(s)) !== null) {
+                    const category = (m[1] || '').trim();
+                    if (category) selections.add(category);
+                }
+                // 대시가 전혀 없는 경우에는 전체를 하나의 라벨로 간주
+                if (selections.size === 0) {
+                    const t = s.replace(/\s+/g, ' ').trim();
                     if (t) selections.add(t);
-                });
+                }
             }
 
             return Array.from(selections);
@@ -909,9 +1035,10 @@
             const l138 = getHeaderCategory(row, 138);
             const l167 = getHeaderCategory(row, 167);
             const l178 = getHeaderCategory(row, 178);
-            h.innerHTML = `<span class="header-pill yellow">${I18N.copy.tasting.oil138[I18N.locale]} — ${l138 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
-                          `<span class="header-pill orange">${I18N.copy.tasting.oil167[I18N.locale]} — ${l167 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
-                          `<span class="header-pill red">${I18N.copy.tasting.oil178[I18N.locale]} — ${l178 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
+            const dash = ' — ';
+            h.innerHTML = `<span class="header-pill yellow">${I18N.copy.tasting.oil138[I18N.locale]}${dash}${l138 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
+                          `<span class="header-pill orange">${I18N.copy.tasting.oil167[I18N.locale]}${dash}${l167 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
+                          `<span class="header-pill red">${I18N.copy.tasting.oil178[I18N.locale]}${dash}${l178 || I18N.copy.tasting.noneSelected[I18N.locale]}</span><br>` +
                           `<span  class="header-pill">${I18N.copy.tasting.allDelicious[I18N.locale]}</span>`
         }
 
@@ -934,6 +1061,10 @@
 
                     if (!isAggregateMode) {
                         const row = data[0];
+                        // 최상단 선호 오일은 항상 먼저 렌더
+                        renderFavoriteOilTop(row);
+                        // 선호 오일 배지는 점수 유효성 여부와 관계없이 먼저 렌더
+                        //renderFavoriteOil(row);
                         const ds138 = buildData(row, 138);
                         const ds167 = buildData(row, 167);
                         const ds178 = buildData(row, 178);
@@ -948,6 +1079,7 @@
                         renderTitle(row);
                         renderHeaderLines(row);
                         renderUserDrawInfo(row);
+                        renderFoods(row);
                         const wrap = document.getElementById('foodTicker'); if (wrap) wrap.style.display = 'none';
                     } else {
                         const rows = data;
@@ -965,6 +1097,10 @@
                         createChart(datasets);
                         renderAggregateMeta();
                         renderFoodTickerFromRows(rows);
+                        // If the API returns exactly one row while in aggregate mode, still show favorite oil
+                        if (Array.isArray(rows) && rows.length === 1) {
+                            renderFavoriteOilTop(rows[0]);
+                        }
                     }
                     
                     hideLoader();
